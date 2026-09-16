@@ -21,7 +21,10 @@ class SecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), display-capture=(), usb=(), serial=(), bluetooth=()');
 
-        // Signed streams and media files must be allowed to embed inside iframes on the frontend application.
+        // Signed streams and media files must be embeddable by the frontend
+        // application. A production React frontend and this Laravel API are
+        // intentionally different origins, so SAMEORIGIN would make Chrome
+        // block the PDF/video iframe with "This page has been blocked by Chrome".
         $isStreamRoute = $request->is('api/concepts/documents/*/stream')
             || $request->is('api/concepts/videos/*/stream')
             || $request->is('api/stream/*')
@@ -31,10 +34,12 @@ class SecurityHeaders
         if ($isStreamRoute) {
             $response->headers->remove('X-Frame-Options');
 
-            // Allow the deployed React frontend (and local development) to embed
-            // protected PDF/video streams. Keep the backend same-origin by default.
+            // Allow the deployed Railway frontend, configured frontend origins,
+            // and local development to embed protected signed media. The signed
+            // URL still controls access/expiry; this header only controls framing.
             $frameAncestors = [
                 "'self'",
+                'https://*.up.railway.app',
                 'http://localhost:5173',
                 'http://localhost:3000',
                 'http://localhost:*',
@@ -44,6 +49,7 @@ class SecurityHeaders
             $configuredOrigins = [
                 (string) env('FRONTEND_URL', ''),
                 (string) env('CORS_ALLOWED_ORIGINS', ''),
+                (string) env('RAILWAY_SERVICE_FRONTEND_URL', ''),
             ];
 
             foreach ($configuredOrigins as $origins) {
