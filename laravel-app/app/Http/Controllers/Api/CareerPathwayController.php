@@ -1064,12 +1064,20 @@ class CareerPathwayController extends Controller
 
                     $contentItem = ContentItem::find($contentItemId);
 
-                    if (!$contentItem || !$contentItem->file_path) {
+                    // content_item_id is the stable persistence reference.
+                    // A signed URL is transport-only read data and must be
+                    // generated whenever the referenced ContentItem exists.
+                    // Do not require/use a persisted file_url here.
+                    if (!$contentItem) {
                         continue;
                     }
 
                     $media['content_item_id'] = $contentItem->id;
 
+                    // Reuse the same signed stream route/pattern as the
+                    // working Concepts endpoint and Admin ItemsController.
+                    // The URL is generated from the current backend request
+                    // host and is never written back to the database.
                     $media['file_url'] = URL::temporarySignedRoute(
                         'stream.item',
                         now()->addMinutes(30),
@@ -1096,7 +1104,7 @@ class CareerPathwayController extends Controller
                     if (empty($media['formatted_size'])) {
                         $disk = Storage::disk('local');
 
-                        if ($disk->exists($contentItem->file_path)) {
+                        if ($contentItem->file_path && $disk->exists($contentItem->file_path)) {
                             $bytes = $disk->size($contentItem->file_path);
 
                             $media['formatted_size'] =
