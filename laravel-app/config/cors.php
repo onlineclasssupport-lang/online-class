@@ -22,8 +22,12 @@ return [
     // Keep local development working while allowing the separately deployed
     // frontend to be configured through Railway variables. Multiple origins
     // may be supplied as a comma-separated CORS_ALLOWED_ORIGINS value.
+    // Trailing slashes are stripped: a browser's Origin header never has
+    // one, so "https://app.up.railway.app/" (an easy copy-paste mistake
+    // when grabbing a Railway domain) would otherwise never match and
+    // silently break every request from the frontend.
     'allowed_origins' => array_values(array_filter(array_map(
-        'trim',
+        fn (string $origin) => rtrim(trim($origin), '/'),
         explode(',', env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL', 'http://localhost:5173')))
     ))),
 
