@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
