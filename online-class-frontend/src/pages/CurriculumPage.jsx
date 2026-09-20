@@ -199,20 +199,24 @@ export default function CurriculumPage() {
   // Helper to render decorative banner graphics for concept cards
   const renderBannerGraphic = (concept) => {
     const name = concept.name.toLowerCase();
-    
+
     if (name.includes("python")) {
       return (
         <div className="oc-concept-banner oc-banner-python">
           <div className="oc-banner-decor-circle oc-circle-1" />
           <div className="oc-banner-decor-circle oc-circle-2" />
+          {/* Large decorative background letter */}
+          <span className="oc-banner-bg-letter" aria-hidden="true">Py</span>
           <div className="oc-banner-content">
             <div className="oc-banner-icon-badge">
-              <svg className="oc-svg-icon" viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5h2v-2h-2v2zm0-4h2V6.5h-2v7z"/>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M11.92 3C8.42 3 8.16 4.5 8.16 4.5l.01 1.57h3.83v.55H6.26S4 6.35 4 9.87c0 3.52 1.98 3.39 1.98 3.39h1.18v-1.68s-.06-1.98 1.95-1.98h3.33s1.88-.03 1.88-1.85V4.85S14.73 3 11.92 3zm-1.3 1.15c.38 0 .69.31.69.69 0 .38-.31.69-.69.69-.38 0-.69-.31-.69-.69 0-.38.31-.69.69-.69zm1.38 16.85c3.5 0 3.76-1.5 3.76-1.5l-.01-1.57h-3.83v-.55h5.74s2.26.27 2.26-3.25c0-3.52-1.98-3.39-1.98-3.39h-1.18v1.68s.06 1.98-1.95 1.98h-3.33s-1.88.03-1.88 1.85v3.29s-.41 1.85 2.4 1.85zm1.3-1.15c-.38 0-.69-.31-.69-.69 0-.38.31-.69.69-.69.38 0 .69.31.69.69 0 .38-.31.69-.69.69z"/>
               </svg>
             </div>
-            <span className="oc-banner-title">PYTHON</span>
+            <div>
+              <div className="oc-banner-type-label">Programming Language</div>
+              <span className="oc-banner-title">PYTHON</span>
+            </div>
           </div>
         </div>
       );
@@ -223,11 +227,15 @@ export default function CurriculumPage() {
         <div className="oc-concept-banner oc-banner-flask">
           <div className="oc-banner-decor-circle oc-circle-1" />
           <div className="oc-banner-decor-circle oc-circle-2" />
+          <span className="oc-banner-bg-letter" aria-hidden="true">Fk</span>
           <div className="oc-banner-content">
             <div className="oc-banner-icon-badge">
-              <i className="bi bi-funnel-fill" style={{ fontSize: "1.6rem" }} />
+              <i className="bi bi-braces-asterisk" />
             </div>
-            <span className="oc-banner-title">FLASK</span>
+            <div>
+              <div className="oc-banner-type-label">Web Framework</div>
+              <span className="oc-banner-title">FLASK</span>
+            </div>
           </div>
         </div>
       );
@@ -238,11 +246,14 @@ export default function CurriculumPage() {
         <div className="oc-concept-banner oc-banner-frontend">
           <div className="oc-banner-decor-circle oc-circle-1" />
           <div className="oc-banner-decor-circle oc-circle-2" />
+          <span className="oc-banner-bg-letter" aria-hidden="true">JS</span>
           <div className="oc-banner-content">
-            <div className="oc-banner-js-tag">JS</div>
-            <span className="oc-banner-title">FRONTEND &amp; REACT</span>
-            <div className="oc-banner-robot">
-              <i className="bi bi-robot" />
+            <div className="oc-banner-icon-badge">
+              <i className="bi bi-code-slash" />
+            </div>
+            <div>
+              <div className="oc-banner-type-label">Frontend Development</div>
+              <span className="oc-banner-title">FRONTEND & REACT</span>
             </div>
           </div>
         </div>
@@ -254,11 +265,15 @@ export default function CurriculumPage() {
         <div className="oc-concept-banner oc-banner-ml">
           <div className="oc-banner-decor-circle oc-circle-1" />
           <div className="oc-banner-decor-circle oc-circle-2" />
+          <span className="oc-banner-bg-letter" aria-hidden="true">AI</span>
           <div className="oc-banner-content">
             <div className="oc-banner-icon-badge">
-              <i className="bi bi-cpu-fill" style={{ fontSize: "1.6rem" }} />
+              <i className="bi bi-cpu-fill" />
             </div>
-            <span className="oc-banner-title">MACHINE LEARNING</span>
+            <div>
+              <div className="oc-banner-type-label">Artificial Intelligence</div>
+              <span className="oc-banner-title">MACHINE LEARNING</span>
+            </div>
           </div>
         </div>
       );
@@ -269,30 +284,40 @@ export default function CurriculumPage() {
         <div className="oc-concept-banner oc-banner-db">
           <div className="oc-banner-decor-circle oc-circle-1" />
           <div className="oc-banner-decor-circle oc-circle-2" />
+          <span className="oc-banner-bg-letter" aria-hidden="true">DB</span>
           <div className="oc-banner-content">
             <div className="oc-banner-icon-badge">
-              <i className="bi bi-database-fill-gear" style={{ fontSize: "1.6rem" }} />
+              <i className="bi bi-database-fill-gear" />
             </div>
-            <span className="oc-banner-title">DATABASE &amp; SQL</span>
+            <div>
+              <div className="oc-banner-type-label">Database & SQL</div>
+              <span className="oc-banner-title">DATABASE & SQL</span>
+            </div>
           </div>
         </div>
       );
     }
 
     // Default / Custom Fallback Banner
+    const abbr = concept.name.substring(0, 2).toUpperCase();
     return (
       <div className={`oc-concept-banner oc-banner-${concept.color_scheme || 'blue'}`}>
         <div className="oc-banner-decor-circle oc-circle-1" />
         <div className="oc-banner-decor-circle oc-circle-2" />
+        <span className="oc-banner-bg-letter" aria-hidden="true">{abbr}</span>
         <div className="oc-banner-content">
           <div className="oc-banner-icon-badge">
-            <i className={`bi ${concept.icon_class || 'bi-journal-code'}`} style={{ fontSize: "1.6rem" }} />
+            <i className={`bi ${concept.icon_class || 'bi-journal-code'}`} />
           </div>
-          <span className="oc-banner-title">{concept.name.toUpperCase()}</span>
+          <div>
+            <div className="oc-banner-type-label">Study Module</div>
+            <span className="oc-banner-title">{concept.name.toUpperCase()}</span>
+          </div>
         </div>
       </div>
     );
   };
+
 
   return (
     <div className="oc-curriculum-wrapper position-relative">
@@ -458,7 +483,10 @@ export default function CurriculumPage() {
                       >
                         <div className="oc-banner-overlay" />
                         <div className="oc-banner-content">
-                          <span className="oc-banner-title">{concept.name.toUpperCase()}</span>
+                          <div>
+                            <div className="oc-banner-type-label">Study Module</div>
+                            <span className="oc-banner-title">{concept.name.toUpperCase()}</span>
+                          </div>
                         </div>
                       </div>
                     ) : (
