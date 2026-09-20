@@ -5739,6 +5739,11 @@ html.oc-screen-lock-active body {
    LECTURES & MATERIALS — MEDIUM HEADER / FOOTER SCALE
    Scoped only to the curriculum route so other pages remain unchanged.
    ============================================================ */
+.oc-app-shell:has(.oc-curriculum-wrapper) > .oc-navbar {
+  min-height: 68px;
+  padding: 0.82rem 0;
+}
+
 .oc-app-shell:has(.oc-curriculum-wrapper) .oc-curriculum-header {
   padding: 1.75rem 0 1.5rem;
 }
