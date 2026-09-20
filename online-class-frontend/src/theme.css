@@ -919,7 +919,7 @@ body {
 
 .oc-curriculum-header {
   background: linear-gradient(135deg, #0b152d 0%, #172554 50%, #1e1b4b 100%);
-  padding: 3rem 0 2.5rem;
+  padding: 1.5rem 0 1.25rem !important;
   position: relative;
   overflow: hidden;
 }
@@ -928,21 +928,21 @@ body {
 .oc-curriculum-title-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 1.35rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #2563eb;
   letter-spacing: -0.01em;
   background: rgba(255, 255, 255, 0.95);
-  padding: 0.4rem 1.25rem;
+  padding: 0.25rem 0.9rem;
   border-radius: var(--radius-pill);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .oc-curriculum-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  max-width: 680px;
-  font-size: 1rem;
-  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 700px;
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .oc-search-input-wrap {
@@ -959,10 +959,10 @@ body {
 
 .oc-search-input {
   border-radius: var(--radius-pill);
-  padding: 0.65rem 2.5rem 0.65rem 2.5rem;
+  padding: 0.5rem 2.5rem 0.5rem 2.5rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.95);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
 
 .oc-search-clear {
@@ -987,8 +987,8 @@ body {
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-pill);
-  padding: 0.5rem 1rem;
-  font-size: 0.84rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -3065,10 +3065,12 @@ body {
 .oc-footer-rich {
   background: #060d1d !important;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.1rem !important;
 }
 
 .oc-footer-rich .oc-footer-links li {
-  margin-bottom: 0.28rem;
+  margin-bottom: 0.22rem;
 }
 
 .oc-footer-rich .oc-footer-links a {
@@ -3285,14 +3287,18 @@ textarea.form-control { min-height: auto; }
 .oc-cta-banner { border-radius: 14px !important; box-shadow: none !important; }
 
 /* Shared headers, dashboard and resource cards */
-.oc-page-header, .oc-curriculum-header, .oc-dashboard-header-3d {
+.oc-page-header, .oc-dashboard-header-3d {
   background: linear-gradient(115deg, #0d1b35, #1b3c78) !important;
   padding: 2.25rem 0 2rem;
+}
+.oc-curriculum-header {
+  background: linear-gradient(115deg, #0d1b35, #1b3c78) !important;
+  padding: 1.4rem 0 1.15rem !important;
 }
 .oc-page-header::before, .oc-page-header::after,
 .oc-curriculum-header::before, .oc-curriculum-header::after,
 .oc-dashboard-header-3d::before, .oc-dashboard-header-3d::after,
-.oc-curriculum-bg-logo, .oc-curriculum-header-logo-bg { display: none; }
+.oc-curriculum-bg-logo { display: none; }
 .oc-dashboard-page-root, .oc-curriculum-wrapper, .oc-pathways-page-wrapper { background: var(--surface-canvas); }
 .oc-folder, .oc-index-card, .oc-concept-card {
   border: 1px solid var(--line-subtle) !important;
@@ -3314,7 +3320,7 @@ textarea.form-control { min-height: auto; }
 .oc-empty, .oc-empty-state { background: #fff; border: 1px dashed #cbd5e1; border-radius: var(--radius-card); }
 
 /* Curriculum filters and cards */
-.oc-curriculum-filter-bar { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 0.6rem 0.8rem; }
+.oc-curriculum-filter-bar { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 0.45rem 0.75rem; margin-top: 0.65rem !important; }
 .oc-search-input, .oc-cat-pill { border-radius: 8px !important; }
 .oc-cat-pill.active { background: #fff !important; color: #173b87 !important; box-shadow: none !important; }
 .oc-concept-card { overflow: hidden; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
