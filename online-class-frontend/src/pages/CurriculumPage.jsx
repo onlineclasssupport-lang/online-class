@@ -310,39 +310,39 @@ export default function CurriculumPage() {
         <PageBackgroundLogo
           variant="header"
           className="oc-curriculum-header-logo-bg"
-          opacity={0.26}
-          size="min(560px, 58vw)"
+          opacity={0.22}
+          size="min(420px, 46vw)"
         />
         <div className="container position-relative" style={{ zIndex: 1 }}>
-          <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
             <Link
               to="/dashboard"
-              className="text-white-50 text-decoration-none d-inline-flex align-items-center gap-1 oc-back-link"
+              className="text-white-50 text-decoration-none d-inline-flex align-items-center gap-1 oc-back-link small"
             >
               <i className="bi bi-arrow-left" />
               <span>Back to Dashboard</span>
             </Link>
-            <span className="badge bg-primary-subtle text-primary-emphasis px-3 py-2 rounded-pill border border-primary-subtle">
+            <span className="badge bg-primary-subtle text-primary-emphasis px-2.5 py-1 rounded-pill border border-primary-subtle small">
               <i className="bi bi-patch-check-fill me-1 text-primary" /> Verified Academic Curriculum
             </span>
           </div>
 
           {/* Reference Image Style Title Banner */}
-          <div className="oc-curriculum-title-badge mb-2">
+          <div className="oc-curriculum-title-badge mb-1">
             <i className="bi bi-book text-primary me-2" />
             <span>Student Curriculum</span>
           </div>
 
-          <h1 className="text-white mt-2 mb-2" style={{ fontSize: "clamp(2rem, 4.5vw, 2.75rem)", fontWeight: 800 }}>
+          <h1 className="text-white mt-1 mb-1" style={{ fontSize: "clamp(1.65rem, 3.2vw, 2.15rem)", fontWeight: 800 }}>
             Lecture &amp; Study Materials
           </h1>
-          <p className="oc-curriculum-subtitle">
+          <p className="oc-curriculum-subtitle mb-0">
             Explore topic-specific learning modules. Click <strong>Know more</strong> or <strong>Unlock</strong> on any subject card to access full
             explanations, downloadable lecture slides, practice documents, and high-definition video walkthroughs.
           </p>
 
           {/* Search & Category Filter Bar */}
-          <div className="oc-curriculum-filter-bar mt-4">
+          <div className="oc-curriculum-filter-bar mt-2.5">
             <div className="row g-2 align-items-center">
               <div className="col-12 col-md-5">
                 <div className="oc-search-input-wrap">
