@@ -38,9 +38,9 @@ export default function AppShell() {
       </main>
 
       {/* Modern Multi-Column Professional Footer — Medium Height */}
-      <footer className="oc-footer-rich bg-dark text-white pt-4 pb-3 mt-auto">
+      <footer className="oc-footer-rich bg-dark text-white pt-3.5 pb-2.5 mt-auto">
         <div className="container">
-          <div className="row g-3 g-lg-4 mb-2">
+          <div className="row g-3 g-lg-4 mb-1">
             {/* Brand column */}
             <div className="col-12 col-lg-4">
               <div className="d-flex align-items-center gap-2 mb-2">
@@ -165,12 +165,12 @@ export default function AppShell() {
                 {settings.help_description || "All educational documents and video lectures are delivered with real-time DRM protection and anti-extraction mechanisms."}
               </p>
               <div
-                className="p-2.5 px-3 rounded-3 mt-1"
+                className="rounded-3 mt-1"
                 style={{
                   background: "rgba(255, 255, 255, 0.06)",
                   border: "1px solid rgba(255, 255, 255, 0.12)",
                   boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
-                  padding: "0.65rem 0.85rem",
+                  padding: "0.48rem 0.75rem",
                 }}
               >
                 {/* Clickable Direct Email */}
