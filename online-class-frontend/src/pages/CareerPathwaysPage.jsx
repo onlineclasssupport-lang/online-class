@@ -10,7 +10,7 @@ export default function CareerPathwaysPage() {
       <PageBackgroundLogo
         variant="global"
         className="oc-curriculum-bg-logo"
-        opacity={0.42}
+        opacity={0.06}
         size="min(860px, 88vw)"
       />
       <CareerPathwaysSection initialSlug={slug} showHeaderBack={true} />
