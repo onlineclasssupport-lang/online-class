@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/client";
 import { useUserAuth } from "../context/UserAuthContext.jsx";
+import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import { openRazorpayCheckout } from "../payments/razorpay.js";
 
 function formatAmount(amount, currency) {
@@ -20,6 +21,7 @@ function wait(ms) {
 
 export default function VideoLock({ onUnlocked }) {
   const { isAuthed, paid, refreshPaymentStatus } = useUserAuth();
+  const { authRequired } = useSiteSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -100,7 +102,7 @@ export default function VideoLock({ onUnlocked }) {
     }
   }
 
-  if (paid) return null; // shouldn't render if already unlocked, but stay safe
+  if (paid || !authRequired) return null; // shouldn't render if already unlocked or auth is OFF
 
   return (
     <div className="oc-locked-video">
