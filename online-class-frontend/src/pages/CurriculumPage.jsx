@@ -8,12 +8,14 @@ import {
   verifyConceptPayment,
 } from "../api/client";
 import { useUserAuth } from "../context/UserAuthContext.jsx";
+import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import { getOfferPricing } from "../utils/offerPricing.js";
 import PageBackgroundLogo from "../components/PageBackgroundLogo.jsx";
 
 export default function CurriculumPage() {
   const navigate = useNavigate();
   const { isAuthed, user } = useUserAuth();
+  const { authRequired } = useSiteSettings();
 
   const [concepts, setConcepts] = useState(() => {
     try {
@@ -92,6 +94,7 @@ export default function CurriculumPage() {
 
   const isConceptUnlocked = (concept) => {
     if (!concept) return false;
+    if (!authRequired) return true; // Developer kept User Login & Signup OFF -> Open access without login!
     if (!paymentEnabled) return true;
     if (concept.is_locked === false) return true;
     const s = concept.slug || String(concept.id);
@@ -100,6 +103,11 @@ export default function CurriculumPage() {
 
   const handlePayForConcept = async (concept, e) => {
     if (e) e.stopPropagation();
+
+    if (!authRequired) {
+      navigate(`/lectures-and-materials/concept/${concept.slug || concept.id}`);
+      return;
+    }
 
     if (!isAuthed) {
       navigate("/login", { state: { from: `/lectures-and-materials` } });
