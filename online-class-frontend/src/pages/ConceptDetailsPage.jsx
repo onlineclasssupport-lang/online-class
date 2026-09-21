@@ -421,7 +421,7 @@ export default function ConceptDetailsPage() {
       <PageBackgroundLogo
         variant="global"
         className="oc-curriculum-bg-logo"
-        opacity={0.40}
+        opacity={0.06}
         size="min(860px, 88vw)"
       />
 
@@ -572,7 +572,7 @@ export default function ConceptDetailsPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="container py-5">
+      <main className="container py-5 position-relative" style={{ zIndex: 1 }}>
         {payNotice && (
           <div className={`alert alert-${payNotice.type} py-3 px-4 rounded-4 shadow-sm mb-4 d-flex align-items-center justify-content-between`}>
             <div className="d-flex align-items-center gap-2">
