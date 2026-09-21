@@ -1005,11 +1005,12 @@ body {
 .oc-concept-card {
   background: #ffffff;
   border-radius: 22px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid rgba(37, 99, 235, 0.20);
   padding: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.12),
+              0 1px 4px -1px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1017,8 +1018,9 @@ body {
 
 .oc-concept-card:hover {
   transform: translateY(-6px);
-  border-color: rgba(37, 99, 235, 0.6);
-  box-shadow: 0 20px 35px -6px rgba(37, 99, 235, 0.25);
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 20px 35px -6px rgba(37, 99, 235, 0.30),
+              0 4px 12px -2px rgba(15, 23, 42, 0.08);
 }
 
 /* Active Highlight Style matching Card 3 in reference image */
@@ -3361,8 +3363,8 @@ textarea.form-control { min-height: auto; }
 .oc-curriculum-filter-bar { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.22); border-radius: 14px; padding: 0.55rem 0.9rem; margin-top: 0.75rem !important; backdrop-filter: blur(8px); }
 .oc-search-input, .oc-cat-pill { border-radius: 8px !important; }
 .oc-cat-pill.active { background: #fff !important; color: #173b87 !important; box-shadow: 0 2px 8px rgba(0,0,0,.15) !important; }
-.oc-concept-card { overflow: hidden; cursor: pointer; transition: transform .22s cubic-bezier(0.16,1,0.3,1), box-shadow .22s ease, border-color .22s ease; border-radius: 18px !important; border: 1.5px solid rgba(226,232,240,0.8) !important; box-shadow: 0 4px 18px -2px rgba(15,23,42,.07) !important; }
-.oc-concept-card:hover { transform: translateY(-5px) !important; box-shadow: 0 18px 40px -6px rgba(37,99,235,.22), 0 4px 12px -2px rgba(15,23,42,.08) !important; border-color: rgba(37,99,235,.4) !important; }
+.oc-concept-card { overflow: hidden; cursor: pointer; transition: transform .22s cubic-bezier(0.16,1,0.3,1), box-shadow .22s ease, border-color .22s ease; border-radius: 18px !important; border: 1.5px solid rgba(37,99,235,0.22) !important; box-shadow: 0 4px 18px -2px rgba(37,99,235,.13), 0 0 0 0.5px rgba(37,99,235,.10) !important; }
+.oc-concept-card:hover { transform: translateY(-5px) !important; box-shadow: 0 18px 40px -6px rgba(37,99,235,.30), 0 4px 12px -2px rgba(15,23,42,.08), 0 0 0 1px rgba(37,99,235,.16) !important; border-color: rgba(37,99,235,.52) !important; }
 .oc-concept-banner { min-height: 168px !important; border-radius: 12px !important; }
 .oc-concept-body { padding: 1.1rem 1rem 0.85rem !important; }
 
@@ -5844,9 +5846,10 @@ html.oc-screen-lock-active body {
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
   border-radius: 18px !important;
-  border: 1.5px solid rgba(226, 232, 240, 0.85) !important;
-  box-shadow: 0 4px 20px -3px rgba(15, 23, 42, 0.08),
-              0 1px 4px -1px rgba(15, 23, 42, 0.04) !important;
+  border: 1.5px solid rgba(37, 99, 235, 0.22) !important;
+  box-shadow: 0 4px 20px -3px rgba(37, 99, 235, 0.13),
+              0 2px 8px -2px rgba(15, 23, 42, 0.06),
+              0 0 0 0.5px rgba(37, 99, 235, 0.10) !important;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -5857,9 +5860,10 @@ html.oc-screen-lock-active body {
 }
 .oc-concept-card:hover {
   transform: translateY(-6px) !important;
-  box-shadow: 0 22px 45px -8px rgba(37, 99, 235, 0.24),
-              0 6px 16px -3px rgba(15, 23, 42, 0.08) !important;
-  border-color: rgba(37, 99, 235, 0.45) !important;
+  box-shadow: 0 22px 45px -8px rgba(37, 99, 235, 0.32),
+              0 6px 16px -3px rgba(15, 23, 42, 0.10),
+              0 0 0 1px rgba(37, 99, 235, 0.18) !important;
+  border-color: rgba(37, 99, 235, 0.55) !important;
 }
 
 /* ── Concept Banner: taller, richer, with sharper icon badges ── */
