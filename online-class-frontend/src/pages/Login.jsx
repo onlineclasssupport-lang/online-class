@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useUserAuth } from "../context/UserAuthContext.jsx";
+import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import EducationLogo from "../components/EducationLogo.jsx";
 
 function extractErrorMessage(err, fallback) {
@@ -21,6 +22,7 @@ function extractErrorMessage(err, fallback) {
 
 export default function Login() {
   const { login } = useUserAuth();
+  const { authRequired } = useSiteSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/dashboard";
@@ -70,6 +72,20 @@ export default function Login() {
         <p className="mb-4" style={{ color: "var(--ink-60)", fontSize: "0.9rem" }}>
           Log in to unlock Online Classes videos you've paid for.
         </p>
+
+        {!authRequired && (
+          <div className="alert alert-success d-flex align-items-center justify-content-between p-3 rounded-4 mb-4 border-0 shadow-sm" style={{ background: "rgba(16, 185, 129, 0.12)", color: "#065f46" }}>
+            <div className="d-flex align-items-center gap-2 small">
+              <i className="bi bi-unlock-fill fs-5 text-success" />
+              <span>
+                <strong>Open Access Active:</strong> User login &amp; signup is kept OFF by the developer. You can use the entire website without logging in.
+              </span>
+            </div>
+            <Link to="/home" className="btn btn-sm btn-success rounded-pill px-3 text-nowrap ms-2 fw-semibold">
+              Explore &rarr;
+            </Link>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="mb-3">
