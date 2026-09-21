@@ -40,7 +40,7 @@ export default function AppShell() {
       {/* Modern Multi-Column Professional Footer — Medium Height */}
       <footer className="oc-footer-rich bg-dark text-white pt-3.5 pb-2.5 mt-auto">
         <div className="container">
-          <div className="row g-3 g-lg-4 mb-1">
+          <div className="row g-2 g-lg-3 mb-1">
             {/* Brand column */}
             <div className="col-12 col-lg-4">
               <div className="d-flex align-items-center gap-2 mb-2">
@@ -225,7 +225,7 @@ export default function AppShell() {
             </div>
           </div>
 
-          <hr style={{ borderColor: "rgba(255, 255, 255, 0.10)", margin: "0.65rem 0" }} />
+          <hr style={{ borderColor: "rgba(255, 255, 255, 0.10)", margin: "0.4rem 0" }} />
 
           {/* Bottom Bar */}
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 text-white-50 small pt-1" style={{ fontSize: "0.8rem" }}>
