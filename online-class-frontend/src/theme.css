@@ -6088,3 +6088,171 @@ html.oc-screen-lock-active body {
   position: relative;
   z-index: 3;
 }
+
+/* ============================================================
+   LECTURES & MATERIALS — TARGETED PROFESSIONAL FIXES
+   1. Course cards: dark theme — clearly visible
+   2. Background logo: sharper & clearly visible
+   3. Footer: medium-small compact height
+   ============================================================ */
+
+/* ── 1. COURSE CARDS — Dark Theme, Clearly Visible ─────────── */
+/* Override all previous white/light card backgrounds         */
+.oc-concept-card {
+  background: linear-gradient(155deg, #0f1b2d 0%, #1a2844 55%, #1e2f52 100%) !important;
+  border: 1.5px solid rgba(59, 82, 128, 0.55) !important;
+  box-shadow:
+    0 6px 28px -4px rgba(0, 0, 0, 0.55),
+    0 2px 8px -2px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+.oc-concept-card:hover {
+  border-color: rgba(59, 130, 246, 0.75) !important;
+  box-shadow:
+    0 22px 50px -6px rgba(37, 99, 235, 0.38),
+    0 6px 18px -3px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Card body: all text light & legible on dark background */
+.oc-concept-name {
+  color: #f0f4ff !important;
+  font-weight: 720 !important;
+}
+.oc-concept-desc {
+  color: #8da4c8 !important;
+}
+.oc-rating-score {
+  color: #dde6f5 !important;
+}
+.oc-rating-stars {
+  color: #fbbf24 !important;
+}
+.oc-concept-res-count {
+  color: #7b94b8 !important;
+}
+
+/* Badges adapted for dark card background */
+.oc-concept-card .badge.bg-success-subtle {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.32) !important;
+}
+.oc-concept-card .badge.bg-warning-subtle {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.32) !important;
+}
+.oc-concept-card .badge.bg-danger-subtle {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.32) !important;
+}
+.oc-concept-card .small.text-muted,
+.oc-concept-card .text-muted {
+  color: #7b94b8 !important;
+}
+/* Strikethrough original price visible on dark */
+.oc-concept-card .text-decoration-line-through {
+  color: #64748b !important;
+}
+
+/* ── 2. BACKGROUND LOGO — Clearly Visible ───────────────────── */
+/* Page-wide fixed logo (curriculum-bg-logo) */
+.oc-curriculum-bg-logo .oc-bg-watermark-inner {
+  opacity: var(--oc-bg-watermark-opacity, 0.30) !important;
+  filter: drop-shadow(0 0 80px rgba(37, 99, 235, 0.20)) !important;
+}
+.oc-curriculum-bg-logo .oc-bg-watermark-img {
+  filter: contrast(1.30) brightness(0.80) saturate(0.88)
+          drop-shadow(0 24px 50px rgba(15, 23, 42, 0.30)) !important;
+}
+.oc-curriculum-bg-logo .oc-bg-watermark-emblem {
+  color: #1e3a8a !important;
+  opacity: 0.30 !important;
+  font-size: min(480px, 54vw) !important;
+  filter: none !important;
+}
+
+/* Header ambient logo (dark header banner) */
+.oc-curriculum-header-logo-bg .oc-bg-watermark-inner {
+  opacity: var(--oc-bg-watermark-opacity, 0.36) !important;
+  filter: drop-shadow(0 0 72px rgba(56, 189, 248, 0.68)) !important;
+}
+.oc-curriculum-header-logo-bg .oc-bg-watermark-img {
+  filter: contrast(1.22) brightness(1.14) saturate(0.90)
+          drop-shadow(0 0 52px rgba(56, 189, 248, 0.58)) !important;
+}
+.oc-curriculum-header-logo-bg .oc-bg-watermark-emblem {
+  color: #38bdf8 !important;
+  opacity: 0.46 !important;
+  filter: drop-shadow(0 0 42px rgba(56, 189, 248, 0.65)) !important;
+}
+
+/* ── 3. FOOTER — Medium-Small Compact Height ────────────────── */
+.oc-footer-rich {
+  padding-top: 0.60rem !important;
+  padding-bottom: 0.38rem !important;
+}
+/* Tighten the main content row */
+.oc-footer-rich > .container > .row:first-child {
+  margin-bottom: 0 !important;
+  --bs-gutter-y: 0.3rem;
+  --bs-gutter-x: 0.75rem;
+}
+/* Column headings: smaller & tighter */
+.oc-footer-rich h4.h6,
+.oc-footer-rich .h6.fw-bold {
+  font-size: 0.78rem !important;
+  margin-bottom: 0.22rem !important;
+}
+/* Nav links: tighter line spacing */
+.oc-footer-rich .oc-footer-links li {
+  margin-bottom: 0.08rem !important;
+}
+.oc-footer-rich .oc-footer-links a {
+  font-size: 0.76rem !important;
+  line-height: 1.3;
+}
+/* Brand paragraph: tighter */
+.oc-footer-rich p.small {
+  font-size: 0.73rem !important;
+  line-height: 1.30 !important;
+  margin-bottom: 0.25rem !important;
+}
+/* Status badge: tighter */
+.oc-footer-rich .badge {
+  font-size: 0.64rem !important;
+  padding-top: 0.22rem !important;
+  padding-bottom: 0.22rem !important;
+}
+/* Social icons: smaller */
+.oc-footer-rich .oc-social-icons {
+  gap: 0.25rem !important;
+  margin-top: 0.1rem !important;
+}
+.oc-footer-rich .oc-social-btn {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 0.72rem !important;
+}
+/* Contact info box: less padding */
+.oc-footer-rich .rounded-3 {
+  padding: 0.28rem 0.55rem !important;
+}
+.oc-footer-rich .rounded-3 > div {
+  margin-bottom: 0.14rem !important;
+}
+.oc-footer-rich .rounded-3 > div:last-child {
+  margin-bottom: 0 !important;
+}
+/* Divider & bottom bar: very tight */
+.oc-footer-rich hr {
+  margin: 0.18rem 0 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.oc-footer-rich > .container > div:last-child {
+  padding-top: 0.18rem !important;
+  font-size: 0.72rem !important;
+}
+
