@@ -19,6 +19,8 @@ class SiteSettingsController extends Controller
         'help_description' => 'All educational documents and video lectures are delivered with real-time DRM protection and anti-extraction mechanisms.',
         // Global payment gate toggle: "1" = payment required (ON), "0" = free access (OFF)
         'payment_required' => '1',
+        // Global user authentication toggle: "1" = login & signup required (ON), "0" = open access / no login needed (OFF)
+        'auth_required' => '1',
     ];
 
     /**
@@ -54,6 +56,7 @@ class SiteSettingsController extends Controller
             'help_address' => 'nullable|string|max:500',
             'help_description' => 'nullable|string',
             'payment_required' => 'nullable|string|in:0,1',
+            'auth_required' => 'nullable|string|in:0,1',
         ]);
 
         foreach ($validated as $key => $value) {
