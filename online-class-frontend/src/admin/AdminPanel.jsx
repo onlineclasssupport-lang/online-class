@@ -81,7 +81,7 @@ const COLOR_PRESETS = [
 
 export default function AdminPanel() {
   const { logout } = useAdminAuth();
-  const { sectionColors, reloadSettings, customSections, allSections, reloadCustomSections } = useSiteSettings();
+  const { sectionColors, reloadSettings, customSections, allSections, reloadCustomSections, authRequired } = useSiteSettings();
   const [activeKey, setActiveKey] = useState("lecture_material");
 
   const [localCustomColors, setLocalCustomColors] = useState(() => {
@@ -112,6 +112,14 @@ export default function AdminPanel() {
       localStorage.setItem("oc_admin_section_colors", JSON.stringify(updated));
       await updateAdminSiteSettings({ section_colors: JSON.stringify(updated) });
       if (reloadSettings) reloadSettings();
+    } catch {}
+  };
+
+  const handleQuickAuthToggle = async (val) => {
+    try {
+      await updateAdminSiteSettings({ auth_required: val });
+      if (reloadSettings) await reloadSettings();
+      window.dispatchEvent(new Event("oc-auth-settings-updated"));
     } catch {}
   };
 
@@ -363,6 +371,34 @@ export default function AdminPanel() {
                 </button>
               </>
             )}
+
+            {/* Quick Developer User Auth Mode Toggle */}
+            <div className="p-1 px-3 rounded-pill d-inline-flex align-items-center gap-2 text-white shadow-sm" style={{ background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.25)", backdropFilter: "blur(8px)" }}>
+              <span className="small fw-semibold d-flex align-items-center gap-1.5" style={{ fontSize: "0.82rem" }}>
+                <i className={`bi ${authRequired ? "bi-shield-lock-fill text-info" : "bi-unlock-fill text-success"}`} />
+                <span>User Login &amp; Signup:</span>
+              </span>
+              <div className="btn-group btn-group-sm" role="group">
+                <button
+                  type="button"
+                  className={`btn btn-sm rounded-pill px-2.5 py-0.5 fw-bold transition-all ${authRequired ? "btn-primary shadow-xs" : "btn-outline-light text-white-50 border-0"}`}
+                  style={{ fontSize: "0.74rem" }}
+                  onClick={() => handleQuickAuthToggle("1")}
+                  title="Keep ON: User login and signup implemented"
+                >
+                  ON
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm rounded-pill px-2.5 py-0.5 fw-bold transition-all ${!authRequired ? "btn-success shadow-xs text-white" : "btn-outline-light text-white-50 border-0"}`}
+                  style={{ fontSize: "0.74rem" }}
+                  onClick={() => handleQuickAuthToggle("0")}
+                  title="Keep OFF: Users can use website without login and signup"
+                >
+                  OFF
+                </button>
+              </div>
+            </div>
 
             {/* Background Color Controller */}
             <div className="p-2 px-3 rounded-pill d-inline-flex align-items-center gap-2 text-white shadow-sm" style={{ background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.25)", backdropFilter: "blur(8px)" }}>
