@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserAuth } from "../context/UserAuthContext.jsx";
+import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import {
   fetchCareerPathways,
   fetchMyPathwayAccess,
@@ -421,6 +422,7 @@ export function getSpecializationPricing(pathway) {
 
 export default function CareerPathwaysSection({ initialSlug, showHeaderBack = false, className = "" }) {
   const { isAuthed, user } = useUserAuth();
+  const { authRequired } = useSiteSettings();
   const navigate = useNavigate();
 
   // Robust student resolution with cached fallback so student name is never blank
@@ -564,6 +566,7 @@ export default function CareerPathwaysSection({ initialSlug, showHeaderBack = fa
 
   const isUnlocked = (pathway) => {
     if (!pathway) return false;
+    if (!authRequired) return true; // Developer kept User Login & Signup OFF -> Open access without login!
     if (!paymentEnabled) return true;
     if (pathway.is_locked === false || pathway.is_locked === 0 || pathway.is_locked === "0") return true;
     const s = pathway.slug || String(pathway.id);
@@ -572,6 +575,7 @@ export default function CareerPathwaysSection({ initialSlug, showHeaderBack = fa
 
   const isModuleUnlocked = (mod, pathway) => {
     if (isUnlocked(pathway)) return true;
+    if (!authRequired) return true;
     if (mod && (mod.is_locked === false || mod.is_locked === 0 || mod.is_locked === "0")) return true;
     return false;
   };
@@ -590,6 +594,8 @@ export default function CareerPathwaysSection({ initialSlug, showHeaderBack = fa
   };
 
   const handlePayForPathway = async (pathway) => {
+    if (!authRequired) return;
+
     if (!isAuthed) {
       navigate("/login", { state: { from: "/home" } });
       return;
