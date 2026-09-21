@@ -630,19 +630,21 @@ class CareerPathwayController extends Controller
     {
         $user = $request->attributes->get('auth_user');
 
-        if (!$user) {
-            return response()->json(['data' => []]);
-        }
-
+        $authRequiredSetting = AdminSetting::where('key', 'auth_required')->value('value');
+        $authRequired = ($authRequiredSetting !== '0');
         $paymentRequiredSetting = AdminSetting::where('key', 'payment_required')->value('value');
         $paymentRequired = ($paymentRequiredSetting !== '0');
 
-        // If global payment is OFF, all pathways are freely unlocked
-        if (!$paymentRequired) {
+        // If user auth is OFF or global payment is OFF, all pathways are freely unlocked without login
+        if (!$authRequired || !$paymentRequired) {
             $allSlugsAndIds = CareerPathway::all()->flatMap(function ($p) {
                 return array_filter([$p->slug, (string) $p->id]);
             })->unique()->values();
             return response()->json(['data' => $allSlugsAndIds]);
+        }
+
+        if (!$user) {
+            return response()->json(['data' => []]);
         }
 
         $unlockedSlugs = Payment::where('user_id', $user->id)
