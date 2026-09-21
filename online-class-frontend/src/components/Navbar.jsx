@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { useUserAuth } from "../context/UserAuthContext.jsx";
+import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import { SECTION_LIST } from "../api/client";
 import EducationLogo from "./EducationLogo.jsx";
 
 export default function Navbar() {
   const { isAuthed, user, paid, logout } = useUserAuth();
+  const { authRequired } = useSiteSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -199,6 +201,19 @@ export default function Navbar() {
                       <span>Log out</span>
                     </button>
                   </>
+                ) : !authRequired ? (
+                  <div className="d-flex align-items-center gap-2">
+                    <span
+                      className="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill small fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm"
+                      title="Developer has kept User Login & Signup OFF — website is freely accessible without login"
+                    >
+                      <i className="bi bi-unlock-fill" />
+                      <span>Open Access</span>
+                    </span>
+                    <NavLink to="/login" className="oc-btn-nav-ghost py-1 px-2.5 small" title="Optional login for existing users" style={{ fontSize: "0.78rem", opacity: 0.75 }}>
+                      <span>Log in</span>
+                    </NavLink>
+                  </div>
                 ) : (
                   <>
                     <NavLink to="/login" className="oc-btn-nav-ghost">
