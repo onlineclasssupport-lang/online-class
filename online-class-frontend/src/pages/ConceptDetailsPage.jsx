@@ -10,6 +10,7 @@ import {
 } from "../api/client";
 import DynamicWatermark from "../components/DynamicWatermark.jsx";
 import { useUserAuth } from "../context/UserAuthContext.jsx";
+import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import { getOfferPricing } from "../utils/offerPricing.js";
 import PageBackgroundLogo from "../components/PageBackgroundLogo.jsx";
 
@@ -17,6 +18,7 @@ export default function ConceptDetailsPage() {
   const { identifier } = useParams();
   const navigate = useNavigate();
   const { isAuthed, user } = useUserAuth();
+  const { authRequired } = useSiteSettings();
 
   const [concept, setConcept] = useState(null);
   const [unlockedSlugs, setUnlockedSlugs] = useState([]);
@@ -108,6 +110,7 @@ export default function ConceptDetailsPage() {
 
   const isUnlocked = () => {
     if (!concept) return false;
+    if (!authRequired) return true; // Developer kept User Login & Signup OFF -> Open access without login!
     if (!paymentEnabled) return true;
     if (concept.is_locked === false) return true;
     const s = concept.slug || String(concept.id);
@@ -115,6 +118,11 @@ export default function ConceptDetailsPage() {
   };
 
   const handlePayForConcept = async () => {
+    if (!authRequired) {
+      setActiveTab("documents");
+      return;
+    }
+
     if (!isAuthed) {
       navigate("/login", { state: { from: `/lectures-and-materials/concept/${identifier}` } });
       return;
