@@ -779,45 +779,50 @@ export default function ConceptDetailsPage() {
                     <p className="text-muted">Your instructor has not published document files for this concept.</p>
                   </div>
                 ) : (
-                  <div className="row g-3">
+                  <div className="row g-4">
                     {concept.documents.map((doc) => {
                       const docUnlocked = isDocUnlocked(doc);
                       return (
-                        <div className="col-12" key={doc.id}>
-                          <div className="oc-doc-card p-4 rounded-4 shadow-sm bg-white border d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-                            <div className="d-flex align-items-start gap-3">
-                              <div className="oc-doc-icon-box">
-                                <i className={`bi ${getDocIcon(doc.file_type)} fs-2`} />
-                              </div>
-                              <div>
-                                <h3 className="h6 fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                                  <span>{doc.title}</span>
-                                  <span className="badge bg-light text-dark border text-uppercase" style={{ fontSize: "0.68rem" }}>
-                                    {doc.file_type || "PDF"}
-                                  </span>
-                                  {doc.formatted_size && (
-                                    <span className="badge bg-light text-muted border" style={{ fontSize: "0.68rem" }}>
-                                      {doc.formatted_size}
-                                    </span>
-                                  )}
-                                  {doc.is_locked === false && !unlocked && (
-                                    <span className="badge bg-success-subtle text-success border border-success-subtle" style={{ fontSize: "0.68rem" }}>
-                                      <i className="bi bi-unlock-fill me-1" /> Free Access
-                                    </span>
-                                  )}
-                                </h3>
-                                {doc.description && (
-                                  <p className="text-muted mb-0" style={{ fontSize: "0.86rem", maxWidth: 650 }}>
-                                    {doc.description}
-                                  </p>
-                                )}
-                              </div>
+                        <div className="col-12 col-md-6 col-lg-4" key={doc.id}>
+                          <div className="oc-doc-card h-100 rounded-4 overflow-hidden shadow-sm bg-white border d-flex flex-column">
+                            {/* Icon Banner (Modeled on the Video / Course Card banner) */}
+                            <div className="oc-doc-card-banner">
+                              <i className={`bi ${getDocIcon(doc.file_type)}`} />
                             </div>
 
-                            <div className="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-end">
+                            {/* Document Info */}
+                            <div className="p-3 d-flex flex-column flex-grow-1">
+                              <div className="d-flex align-items-center justify-content-between mb-1 gap-2">
+                                <h3 className="h6 fw-bold mb-0 text-dark line-clamp-1" title={doc.title}>
+                                  {doc.title}
+                                </h3>
+                                {doc.is_locked === false && !unlocked && (
+                                  <span className="badge bg-success-subtle text-success border border-success-subtle ms-2 flex-shrink-0" style={{ fontSize: "0.68rem" }}>
+                                    <i className="bi bi-unlock-fill me-1" /> Free
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="d-flex flex-wrap gap-1 mb-2">
+                                <span className="badge bg-light text-dark border text-uppercase" style={{ fontSize: "0.68rem" }}>
+                                  {doc.file_type || "PDF"}
+                                </span>
+                                {doc.formatted_size && (
+                                  <span className="badge bg-light text-muted border" style={{ fontSize: "0.68rem" }}>
+                                    {doc.formatted_size}
+                                  </span>
+                                )}
+                              </div>
+
+                              {doc.description && (
+                                <p className="text-muted small mb-3 flex-grow-1 line-clamp-2">
+                                  {doc.description}
+                                </p>
+                              )}
+
                               <button
                                 type="button"
-                                className={`btn btn-sm rounded-pill px-4 py-2 d-inline-flex align-items-center gap-1 shadow-sm ${
+                                className={`btn btn-sm w-100 rounded-pill mt-auto d-flex align-items-center justify-content-center gap-1 ${
                                   docUnlocked ? "btn-primary" : "btn-warning text-dark fw-bold"
                                 }`}
                                 onClick={() => handleDocumentClick(doc)}
