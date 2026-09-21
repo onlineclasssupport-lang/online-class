@@ -6136,73 +6136,20 @@ html.oc-screen-lock-active body {
 
 /* ============================================================
    LECTURES & MATERIALS — TARGETED PROFESSIONAL FIXES
-   1. Course cards: dark theme — clearly visible
-   2. Background logo: sharper & clearly visible
-   3. Footer: medium-small compact height
+   1. Background logo: sharper & clearly visible
+   2. Footer: medium-small compact height
+
+   NOTE: An earlier patch here force-overrode the Course Card
+   (.oc-concept-card) to a dark navy background with light text,
+   which made it visually diverge from the white cards used on the
+   Main Dashboard (.oc-folder) and Video cards (.oc-video-card).
+   That override has been removed so the course card now
+   consistently resolves to the white "professional" card style
+   defined above — matching the Main Dashboard card display, as
+   intended.
    ============================================================ */
 
-/* ── 1. COURSE CARDS — Dark Theme, Clearly Visible ─────────── */
-/* Override all previous white/light card backgrounds         */
-.oc-concept-card {
-  background: linear-gradient(155deg, #0f1b2d 0%, #1a2844 55%, #1e2f52 100%) !important;
-  border: 1.5px solid rgba(59, 82, 128, 0.55) !important;
-  box-shadow:
-    0 6px 28px -4px rgba(0, 0, 0, 0.55),
-    0 2px 8px -2px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-}
-.oc-concept-card:hover {
-  border-color: rgba(59, 130, 246, 0.75) !important;
-  box-shadow:
-    0 22px 50px -6px rgba(37, 99, 235, 0.38),
-    0 6px 18px -3px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Card body: all text light & legible on dark background */
-.oc-concept-name {
-  color: #f0f4ff !important;
-  font-weight: 720 !important;
-}
-.oc-concept-desc {
-  color: #8da4c8 !important;
-}
-.oc-rating-score {
-  color: #dde6f5 !important;
-}
-.oc-rating-stars {
-  color: #fbbf24 !important;
-}
-.oc-concept-res-count {
-  color: #7b94b8 !important;
-}
-
-/* Badges adapted for dark card background */
-.oc-concept-card .badge.bg-success-subtle {
-  background: rgba(16, 185, 129, 0.15) !important;
-  color: #34d399 !important;
-  border-color: rgba(16, 185, 129, 0.32) !important;
-}
-.oc-concept-card .badge.bg-warning-subtle {
-  background: rgba(245, 158, 11, 0.15) !important;
-  color: #fbbf24 !important;
-  border-color: rgba(245, 158, 11, 0.32) !important;
-}
-.oc-concept-card .badge.bg-danger-subtle {
-  background: rgba(239, 68, 68, 0.15) !important;
-  color: #f87171 !important;
-  border-color: rgba(239, 68, 68, 0.32) !important;
-}
-.oc-concept-card .small.text-muted,
-.oc-concept-card .text-muted {
-  color: #7b94b8 !important;
-}
-/* Strikethrough original price visible on dark */
-.oc-concept-card .text-decoration-line-through {
-  color: #64748b !important;
-}
-
-/* ── 2. BACKGROUND LOGO — Clearly Visible ───────────────────── */
+/* ── 1. BACKGROUND LOGO — Clearly Visible ───────────────────── */
 /* Page-wide fixed logo (curriculum-bg-logo) */
 .oc-curriculum-bg-logo .oc-bg-watermark-inner {
   opacity: var(--oc-bg-watermark-opacity, 0.30) !important;
