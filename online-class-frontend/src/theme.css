@@ -3063,19 +3063,21 @@ body {
    APP SHELL — Footer Hover states & Medium Height Styling
    ============================================================ */
 .oc-footer-rich {
-  background: #060d1d !important;
+  background: rgba(10, 20, 42, 0.94) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 0.85rem !important;
   padding-bottom: 0.55rem !important;
 }
 
 .oc-footer-rich .oc-footer-links li {
-  margin-bottom: 0.22rem;
+  margin-bottom: 0.16rem;
 }
 
 .oc-footer-rich .oc-footer-links a {
   color: rgba(255, 255, 255, 0.65);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   transition: color 0.16s ease;
 }
 
@@ -3084,9 +3086,9 @@ body {
 }
 
 .oc-footer-rich .oc-social-btn {
-  width: 30px;
-  height: 30px;
-  font-size: 0.82rem;
+  width: 28px;
+  height: 28px;
+  font-size: 0.8rem;
 }
 
 /* ============================================================
@@ -3236,7 +3238,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .oc-btn-nav-solid { background: var(--brand); }
 .oc-btn-nav-solid:hover { background: var(--brand-hover); transform: none; box-shadow: none; }
 .oc-nav-popover { border-radius: 12px; box-shadow: 0 16px 36px rgba(15,23,42,.18); }
-.oc-footer-rich { background: #0c1830 !important; }
+.oc-footer-rich { background: rgba(10, 20, 42, 0.94) !important; }
 
 /* Buttons, forms, feedback */
 .btn-oc-primary, .btn-oc-outline { border-radius: var(--radius-btn); box-shadow: none; min-height: 42px; }
@@ -5793,10 +5795,12 @@ html.oc-screen-lock-active body {
 
 /* ── Concept Card: refined white-card professional look ── */
 .oc-concept-card {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   border-radius: 18px !important;
-  border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
-  box-shadow: 0 4px 20px -3px rgba(15, 23, 42, 0.07),
+  border: 1.5px solid rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 0 4px 20px -3px rgba(15, 23, 42, 0.08),
               0 1px 4px -1px rgba(15, 23, 42, 0.04) !important;
   overflow: hidden;
   display: flex;
