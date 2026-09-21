@@ -315,19 +315,21 @@ class ConceptController extends Controller
     {
         $user = $request->attributes->get('auth_user');
 
-        if (!$user) {
-            return response()->json(['data' => []]);
-        }
-
+        $authRequiredSetting = AdminSetting::where('key', 'auth_required')->value('value');
+        $authRequired = ($authRequiredSetting !== '0');
         $paymentRequiredSetting = AdminSetting::where('key', 'payment_required')->value('value');
         $paymentRequired = ($paymentRequiredSetting !== '0');
 
-        // If global payment is OFF, all concepts are freely unlocked
-        if (!$paymentRequired) {
+        // If user auth is OFF or global payment is OFF, all concepts are freely unlocked without login
+        if (!$authRequired || !$paymentRequired) {
             $allSlugsAndIds = Concept::all()->flatMap(function ($c) {
                 return array_filter([$c->slug, (string) $c->id]);
             })->unique()->values();
             return response()->json(['data' => $allSlugsAndIds]);
+        }
+
+        if (!$user) {
+            return response()->json(['data' => []]);
         }
 
         $unlockedSlugs = Payment::where('user_id', $user->id)
