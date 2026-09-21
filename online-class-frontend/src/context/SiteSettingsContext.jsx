@@ -83,9 +83,11 @@ export function SiteSettingsProvider({ children }) {
 
     window.addEventListener("oc-logo-updated", handleLogoUpdate);
     window.addEventListener("oc-sections-updated", handleSectionsUpdate);
+    window.addEventListener("oc-auth-settings-updated", handleLogoUpdate);
     return () => {
       window.removeEventListener("oc-logo-updated", handleLogoUpdate);
       window.removeEventListener("oc-sections-updated", handleSectionsUpdate);
+      window.removeEventListener("oc-auth-settings-updated", handleLogoUpdate);
     };
   }, [loadSettings, loadCustomSections]);
 
@@ -104,10 +106,13 @@ export function SiteSettingsProvider({ children }) {
     ...customSections.filter(cs => !SECTION_LIST.some(bs => bs.key === cs.key)),
   ];
 
+  const authRequired = settings?.auth_required !== "0";
+
   return (
     <SiteSettingsContext.Provider
       value={{
         settings,
+        authRequired,
         educationLogoUrl,
         educationLogoName: settings?.education_logo_name || "Education Logo",
         sectionColors: parsedSectionColors,
