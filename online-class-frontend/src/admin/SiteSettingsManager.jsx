@@ -34,6 +34,7 @@ export default function SiteSettingsManager() {
     help_address: "Academic Engineering Labs, Block C",
     help_description: "All educational documents and video lectures are delivered with real-time DRM protection and anti-extraction mechanisms.",
     payment_required: "1",
+    auth_required: "1",
     education_logo_url: "",
     education_logo_name: "",
     section_colors: "",
@@ -46,11 +47,31 @@ export default function SiteSettingsManager() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingAuth, setSavingAuth] = useState(false);
   const [notice, setNotice] = useState(null);
 
   const showNotice = (msg, type = "success") => {
     setNotice({ type, msg });
     setTimeout(() => setNotice(null), 5000);
+  };
+
+  const handleToggleAuth = async (val) => {
+    setSavingAuth(true);
+    setSettings((s) => ({ ...s, auth_required: val }));
+    try {
+      await updateAdminSiteSettings({ auth_required: val });
+      window.dispatchEvent(new Event("oc-auth-settings-updated"));
+      window.dispatchEvent(new Event("oc-logo-updated"));
+      showNotice(
+        val === "0"
+          ? "User Login & Signup is now OFF. Users can freely explore and use the entire website without login or signup."
+          : "User Login & Signup is now ON. User login and signup are required to access protected student features."
+      );
+    } catch (err) {
+      showNotice(err.response?.data?.message || "Failed to update authentication setting.", "danger");
+    } finally {
+      setSavingAuth(false);
+    }
   };
 
   useEffect(() => {
@@ -210,6 +231,80 @@ export default function SiteSettingsManager() {
           <span className="fw-medium">{notice.msg}</span>
         </div>
       )}
+
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* CARD 0: DEVELOPER USER LOGIN & SIGNUP ACCESS CONTROL (ON / OFF)       */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 pb-3 border-bottom">
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <span
+                className="d-inline-flex align-items-center justify-content-center rounded-circle"
+                style={{ width: 34, height: 34, background: settings.auth_required === "0" ? "rgba(16, 185, 129, 0.18)" : "rgba(37, 99, 235, 0.18)", color: settings.auth_required === "0" ? "#059669" : "#2563eb" }}
+              >
+                <i className={`bi ${settings.auth_required === "0" ? "bi-unlock-fill" : "bi-shield-lock-fill"} fs-5`} />
+              </span>
+              <h5 className="fw-bold mb-0 text-dark">User Login &amp; Signup Access Control</h5>
+              <span className={`badge px-3 py-1 rounded-pill small fw-bold ${settings.auth_required === "0" ? "bg-success-subtle text-success border border-success-subtle" : "bg-primary-subtle text-primary border border-primary-subtle"}`}>
+                {settings.auth_required === "0" ? "CURRENT: OFF (Open Access Active)" : "CURRENT: ON (Login & Signup Implemented)"}
+              </span>
+            </div>
+            <p className="text-muted small mb-0" style={{ maxWidth: 750 }}>
+              Developer switch for website accessibility: When kept <strong>OFF</strong>, users can use and explore the entire website without login or signup. When kept <strong>ON</strong>, user login and signup are implemented and enforced across protected sections.
+            </p>
+          </div>
+
+          <div className="d-flex align-items-center gap-2">
+            <div className="btn-group p-1 bg-light rounded-pill border shadow-sm" role="group" aria-label="Auth Mode">
+              <button
+                type="button"
+                className={`btn rounded-pill px-4 py-2 fw-bold text-uppercase d-inline-flex align-items-center gap-2 transition-all ${settings.auth_required !== "0" ? "btn-primary shadow-sm" : "btn-light text-muted"}`}
+                style={{ fontSize: "0.82rem" }}
+                onClick={() => handleToggleAuth("1")}
+                disabled={savingAuth}
+              >
+                <i className="bi bi-shield-check" />
+                <span>ON</span>
+              </button>
+              <button
+                type="button"
+                className={`btn rounded-pill px-4 py-2 fw-bold text-uppercase d-inline-flex align-items-center gap-2 transition-all ${settings.auth_required === "0" ? "btn-success shadow-sm text-white" : "btn-light text-muted"}`}
+                style={{ fontSize: "0.82rem" }}
+                onClick={() => handleToggleAuth("0")}
+                disabled={savingAuth}
+              >
+                <i className="bi bi-unlock-fill" />
+                <span>OFF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Informative Status Banner */}
+        <div className={`p-3 rounded-4 border d-flex align-items-center justify-content-between flex-wrap gap-3 ${settings.auth_required === "0" ? "bg-success-subtle border-success-subtle text-success-emphasis" : "bg-primary-subtle border-primary-subtle text-primary-emphasis"}`}>
+          <div className="d-flex align-items-center gap-3">
+            <div className={`rounded-circle p-2 d-flex align-items-center justify-content-center text-white ${settings.auth_required === "0" ? "bg-success" : "bg-primary"}`} style={{ width: 40, height: 40 }}>
+              <i className={`bi ${settings.auth_required === "0" ? "bi-unlock-fill fs-5" : "bi-person-check-fill fs-5"}`} />
+            </div>
+            <div>
+              <div className="fw-bold">
+                {settings.auth_required === "0" 
+                  ? "Open Public Access Active (Login & Signup OFF)" 
+                  : "Authenticated Student Access Active (Login & Signup ON)"}
+              </div>
+              <small className="opacity-85">
+                {settings.auth_required === "0"
+                  ? "Students can open lectures, read document handbooks, stream video recordings, and browse engineering tracks freely without logging in or creating an account."
+                  : "Students must create an account and log in to study subjects, stream videos, and view documents. Login & Signup buttons are visible in the header."}
+              </small>
+            </div>
+          </div>
+          <span className="badge bg-white text-dark border px-3 py-1.5 rounded-pill shadow-xs small fw-bold">
+            {settings.auth_required === "0" ? "Guest Access Allowed" : "Auth Enforced"}
+          </span>
+        </div>
+      </div>
 
       {/* ═════════════════════════════════════════════════════════════════════ */}
       {/* CARD 1: EDUCATION LOGO MANAGEMENT (DISPLAYED ON ENTIRE WEBSITE)      */}
