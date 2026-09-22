@@ -56,8 +56,8 @@ export default function Navbar() {
               </NavLink>
             </li>
 
-            {/* CURRICULUM NAV ITEM (Displayed only when logged in) */}
-            {isAuthed && (
+            {/* CURRICULUM NAV ITEM (Displayed when logged in, or always when Developer has kept User Login & Signup OFF) */}
+            {(isAuthed || !authRequired) && (
               <li
                 className="nav-item position-relative oc-nav-hover-wrapper"
                 onMouseEnter={() => setHoveredNav("curriculum")}
@@ -120,8 +120,8 @@ export default function Navbar() {
               </li>
             )}
 
-            {/* DASHBOARD NAV ITEM (Displayed only when logged in) */}
-            {isAuthed && !isAuthRoute && (
+            {/* DASHBOARD NAV ITEM (Displayed when logged in, or always when Developer has kept User Login & Signup OFF) */}
+            {(isAuthed || !authRequired) && !isAuthRoute && (
               <li
                 className="nav-item position-relative oc-nav-hover-wrapper"
                 onMouseEnter={() => setHoveredNav("dashboard")}
