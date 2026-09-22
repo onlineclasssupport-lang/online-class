@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUserAuth } from "../context/UserAuthContext.jsx";
+import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import api, { fetchPublicReviews } from "../api/client";
 import CareerPathwaysSection from "../components/CareerPathwaysSection.jsx";
 import EducationScrollScene from "../components/EducationScrollScene.jsx";
@@ -11,6 +12,10 @@ import EducationLogo from "../components/EducationLogo.jsx";
 
 export default function HomePage() {
   const { isAuthed, user } = useUserAuth();
+  const { authRequired } = useSiteSettings();
+  // Developer kept User Login & Signup OFF -> treat every visitor like an
+  // unlocked/open-access user for sections that would otherwise wait for login.
+  const openAccess = isAuthed || !authRequired;
 
   const [welcomeInfo, setWelcomeInfo] = useState({
     title: "Online Class",
@@ -99,8 +104,8 @@ export default function HomePage() {
                   "Access structured concept modules, comprehensive study handbooks, protected lecture notes, and HD video walkthroughs — built for serious students and developers."}
               </p>
 
-              {/* Dashboard access remains available to authenticated students. */}
-              {isAuthed && (
+              {/* Dashboard access remains available to authenticated students, or to everyone when the Developer keeps User Login & Signup OFF. */}
+              {openAccess && (
                 <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start align-items-center mb-4">
                   <Link to="/dashboard" className="btn oc-btn-hero-gradient">
                     <i className="bi bi-grid-fill me-2" />
@@ -287,9 +292,11 @@ export default function HomePage() {
       <ArchitectureScrollScene />
 
       {/* ============================================================
-          4. CAREER PATHWAYS / CURATED ENGINEERING SPECIALIZATIONS (Shown only when Logged In)
+          4. CAREER PATHWAYS / CURATED ENGINEERING SPECIALIZATIONS
+          (Shown when Logged In, or to every visitor once the Developer
+          keeps User Login & Signup OFF for open access)
           ============================================================ */}
-      {isAuthed && (
+      {openAccess && (
         <ScrollDepthSection
           as="div"
           className="oc-home-pathways-depth position-relative"
@@ -369,7 +376,7 @@ export default function HomePage() {
       {/* ============================================================
           6. CALL TO ACTION (CTA) SECTION
           ============================================================ */}
-      {isAuthed && (
+      {openAccess && (
         <ScrollDepthSection className="oc-cta-section py-5" depth="cta">
           <div className="container">
             <div className="oc-cta-banner p-4 p-md-5 rounded-4 shadow-lg text-center text-md-start">
