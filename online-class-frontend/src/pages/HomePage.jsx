@@ -76,8 +76,6 @@ export default function HomePage() {
           1. HERO SECTION
           ============================================================ */}
       <ScrollDepthSection className="oc-hero-section position-relative overflow-hidden" depth="hero">
-        {/* Ambient Hero Background Logo */}
-        <PageBackgroundLogo variant="header" />
         {/* Animated Background Mesh & Glow */}
         <div className="oc-hero-ambient-glow oc-glow-1" />
         <div className="oc-hero-ambient-glow oc-glow-2" />
@@ -131,6 +129,8 @@ export default function HomePage() {
             {/* Right Hero Card: Interactive Portal Box */}
             <div className="col-12 col-lg-5">
               <div className="oc-hero-card-glass p-4 p-md-5 rounded-4 shadow-lg text-center position-relative">
+                {/* Ambient logo watermark, contained fully inside this card */}
+                <PageBackgroundLogo variant="header" className="oc-hero-card-bg-logo" opacity={0.14} />
                 <div className="oc-hero-logo-wrap mb-3">
                   <div className="oc-hero-logo-glow" />
                   <div className="oc-hero-logo-icon d-flex align-items-center justify-content-center">
