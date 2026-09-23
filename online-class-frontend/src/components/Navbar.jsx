@@ -202,6 +202,8 @@ export default function Navbar() {
                     </button>
                   </>
                 ) : !authRequired ? (
+                  // Developer has kept User Login & Signup OFF -> no login/signup
+                  // option is shown anywhere, including here. Just a status badge.
                   <div className="d-flex align-items-center gap-2">
                     <span
                       className="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill small fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm"
@@ -210,9 +212,6 @@ export default function Navbar() {
                       <i className="bi bi-unlock-fill" />
                       <span>Open Access</span>
                     </span>
-                    <NavLink to="/login" className="oc-btn-nav-ghost py-1 px-2.5 small" title="Optional login for existing users" style={{ fontSize: "0.78rem", opacity: 0.75 }}>
-                      <span>Log in</span>
-                    </NavLink>
                   </div>
                 ) : (
                   <>
