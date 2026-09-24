@@ -4302,6 +4302,22 @@ a[href]:focus-visible,
   transform: translateZ(0);
 }
 
+/* Normal-sized logo badge — top-right of the Dashboard & Lecture/Study
+   Materials headers, replacing the old oversized low-opacity watermark so
+   the logo shows fully, crisp and at full opacity instead of faded/clipped. */
+.oc-header-logo-badge {
+  position: absolute;
+  top: 1.25rem;
+  right: 5%;
+  z-index: 2;
+  align-items: center;
+}
+
+.oc-header-logo-badge .oc-education-logo-img {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.28);
+}
+
 /* Header ambient watermark — for Dashboard Header & Home Hero
    NOTE: top/bottom (instead of a fixed height centered with translateY) makes this
    box always match the *actual* rendered height of its header/section. Combined with
