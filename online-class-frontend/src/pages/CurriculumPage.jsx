@@ -11,6 +11,7 @@ import { useUserAuth } from "../context/UserAuthContext.jsx";
 import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import { getOfferPricing } from "../utils/offerPricing.js";
 import PageBackgroundLogo from "../components/PageBackgroundLogo.jsx";
+import EducationLogo from "../components/EducationLogo.jsx";
 
 export default function CurriculumPage() {
   const navigate = useNavigate();
@@ -339,13 +340,10 @@ export default function CurriculumPage() {
 
       {/* Top Header Section */}
       <header className="oc-curriculum-header position-relative overflow-hidden">
-        {/* Ambient Header Background Logo */}
-        <PageBackgroundLogo
-          variant="header"
-          className="oc-curriculum-header-logo-bg"
-          opacity={0.22}
-          size="min(420px, 46vw)"
-        />
+        {/* Normal-sized logo badge, top-right of header */}
+        <div className="oc-header-logo-badge d-none d-md-inline-flex">
+          <EducationLogo size={90} />
+        </div>
         <div className="container position-relative" style={{ zIndex: 1 }}>
           <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
             <Link
@@ -355,9 +353,6 @@ export default function CurriculumPage() {
               <i className="bi bi-arrow-left" />
               <span>Back to Dashboard</span>
             </Link>
-            <span className="badge bg-primary-subtle text-primary-emphasis px-2.5 py-1 rounded-pill border border-primary-subtle small">
-              <i className="bi bi-patch-check-fill me-1 text-primary" /> Verified Academic Curriculum
-            </span>
           </div>
 
           {/* Reference Image Style Title Banner */}
