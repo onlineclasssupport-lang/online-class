@@ -119,13 +119,10 @@ export default function Dashboard() {
 
       {/* Dashboard Hero Header */}
       <header className="oc-curriculum-header oc-dashboard-header-3d position-relative overflow-hidden">
-        {/* Ambient Header Background Logo - identical to Curriculum Page */}
-        <PageBackgroundLogo
-          variant="header"
-          className="oc-curriculum-header-logo-bg"
-          opacity={0.26}
-          size="min(560px, 58vw)"
-        />
+        {/* Normal-sized logo badge, top-right of header */}
+        <div className="oc-header-logo-badge d-none d-md-inline-flex">
+          <EducationLogo size={110} />
+        </div>
         <div className="container position-relative" style={{ zIndex: 1 }}>
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
             <div className="oc-eyebrow text-mono">
