@@ -13,6 +13,7 @@ import { useUserAuth } from "../context/UserAuthContext.jsx";
 import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 import { getOfferPricing } from "../utils/offerPricing.js";
 import PageBackgroundLogo from "../components/PageBackgroundLogo.jsx";
+import EducationLogo from "../components/EducationLogo.jsx";
 
 export default function ConceptDetailsPage() {
   const { identifier } = useParams();
@@ -435,13 +436,10 @@ export default function ConceptDetailsPage() {
 
       {/* Top Banner Header */}
       <header className="oc-details-header position-relative overflow-hidden">
-        {/* Ambient Header Background Logo */}
-        <PageBackgroundLogo
-          variant="header"
-          className="oc-curriculum-header-logo-bg"
-          opacity={0.24}
-          size="min(540px, 55vw)"
-        />
+        {/* Normal-sized logo badge, top-right of header */}
+        <div className="oc-header-logo-badge d-none d-md-inline-flex">
+          <EducationLogo size={140} />
+        </div>
         <div className="container position-relative" style={{ zIndex: 1 }}>
           {/* Breadcrumb Navigation */}
           <nav aria-label="breadcrumb" className="mb-3">
