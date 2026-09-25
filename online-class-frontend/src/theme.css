@@ -2119,6 +2119,8 @@ body {
   row-gap: 0.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
   overflow: visible !important;
+  min-height: 64px;
+  line-height: normal;
 }
 
 /* Left title group — shrinks gracefully */
@@ -2137,6 +2139,8 @@ body {
   flex-wrap: wrap;
   gap: 0.45rem;
   row-gap: 0.4rem;
+  overflow: visible;
+  min-height: 36px;
 }
 
 .oc-doc-viewer-body {
@@ -2193,6 +2197,7 @@ body {
   border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .oc-view-size-btn-group .btn {
@@ -2209,6 +2214,8 @@ body {
   align-items: center;
   cursor: pointer;
   white-space: nowrap;
+  box-sizing: border-box;
+  vertical-align: middle;
 }
 
 .oc-view-size-btn-group .btn:hover {
@@ -2263,6 +2270,7 @@ body {
   gap: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .oc-doc-zoom-toolbar .btn {
@@ -2274,12 +2282,17 @@ body {
   font-weight: 700;
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  margin: 0;
   transition: all 0.15s ease;
   line-height: 1;
+  vertical-align: middle;
   cursor: pointer;
 }
 
@@ -2309,6 +2322,9 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.45);
   user-select: none;
   display: inline-block;
+  box-sizing: border-box;
+  line-height: normal;
+  vertical-align: middle;
 }
 .oc-doc-zoom-val:hover {
   background: #38bdf8;
@@ -2322,6 +2338,10 @@ body {
   padding: 0.15rem 0.5rem !important;
   width: auto !important;
   height: 26px !important;
+  min-height: 26px !important;
+  box-sizing: border-box !important;
+  line-height: normal !important;
+  vertical-align: middle;
   color: #fef08a !important;
   background: rgba(234, 179, 8, 0.18) !important;
   border: 1px solid rgba(234, 179, 8, 0.4) !important;
