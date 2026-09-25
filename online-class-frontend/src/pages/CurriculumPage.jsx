@@ -342,7 +342,7 @@ export default function CurriculumPage() {
       <header className="oc-curriculum-header position-relative overflow-hidden">
         {/* Normal-sized logo badge, top-right of header */}
         <div className="oc-header-logo-badge d-none d-md-inline-flex">
-          <EducationLogo size={90} />
+          <EducationLogo size={140} />
         </div>
         <div className="container position-relative" style={{ zIndex: 1 }}>
           <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
