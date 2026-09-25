@@ -132,7 +132,7 @@ export default function HomePage() {
                 <div className="oc-hero-logo-wrap mb-3">
                   <div className="oc-hero-logo-glow" />
                   <div className="oc-hero-logo-icon d-flex align-items-center justify-content-center">
-                    <EducationLogo size={54} />
+                    <EducationLogo size={80} />
                   </div>
                 </div>
 
