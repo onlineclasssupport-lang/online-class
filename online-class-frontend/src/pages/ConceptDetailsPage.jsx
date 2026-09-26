@@ -33,10 +33,7 @@ export default function ConceptDetailsPage() {
   const [payNotice, setPayNotice] = useState(null);
 
   // Modal / Inline Player State
-  const [activeDocument, setActiveDocument] = useState(null);
   const [activeVideo, setActiveVideo] = useState(null);
-  const [docViewSize, setDocViewSize] = useState("medium"); // "medium" | "expanded"
-  const [docZoom, setDocZoom] = useState(1); // 0.5 to 2.5
   const [videoViewSize, setVideoViewSize] = useState("medium"); // "medium" | "expanded"
   const [activeVideoModal, setActiveVideoModal] = useState(null);
 
@@ -45,7 +42,7 @@ export default function ConceptDetailsPage() {
 
   // Prevent background page scrolling while modal viewer is active
   useEffect(() => {
-    if (activeDocument || activeVideoModal) {
+    if (activeVideoModal) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -53,7 +50,7 @@ export default function ConceptDetailsPage() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [activeDocument, activeVideoModal]);
+  }, [activeVideoModal]);
 
   // A protected document/video URL is deliberately issued only after the
   // current account is entitled to it. Refresh the current subject after an
@@ -249,22 +246,11 @@ export default function ConceptDetailsPage() {
         return;
       }
 
-      setActiveDocument(documentToView);
-      if (isAuthed) {
-        api
-          .post("/security/log", {
-            event_type: "protected_document_view_started",
-            section_key: `concept:${concept?.slug || identifier}`,
-            document_id: String(doc.id),
-            username: user?.name || "Student User",
-            meta: {
-              concept: concept?.name || identifier,
-              document_title: documentToView.title,
-              access: "protected_viewer",
-            },
-          })
-          .catch(() => {});
-      }
+      // "View Online" now opens the protected viewer on its own dedicated
+      // page/screen (a fresh route) instead of an in-page modal overlay.
+      // The document viewer page itself logs the "view started" event once
+      // it confirms the document is unlocked and ready.
+      navigate(`/lectures-and-materials/concept/${identifier}/document/${documentToView.id}`);
     }
   };
 
@@ -1116,306 +1102,6 @@ export default function ConceptDetailsPage() {
                   Cancel
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================
-          PROTECTED DOCUMENT MODAL VIEWER (WITH DRM WATERMARK & ANTI-DOWNLOAD)
-          ============================================================ */}
-      {activeDocument && (
-        <div
-          className={`oc-doc-viewer-modal-backdrop ${docViewSize === "expanded" ? "oc-doc-viewer-modal-backdrop--expanded" : ""}`}
-          onClick={() => setActiveDocument(null)}
-          onContextMenu={(e) => e.preventDefault()}
-          style={{ userSelect: "none", WebkitUserSelect: "none" }}
-        >
-          <div
-            className={`oc-doc-viewer-modal ${docViewSize === "expanded" ? "oc-doc-viewer-modal--expanded" : "oc-doc-viewer-modal--medium"}`}
-            onClick={(e) => e.stopPropagation()}
-            onContextMenu={(e) => e.preventDefault()}
-          >
-            <div className="oc-doc-viewer-header">
-              <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ minWidth: 0, flex: "1 1 200px" }}>
-                <span className="oc-popover-icon bg-primary text-white flex-shrink-0">
-                  <i className="bi bi-shield-lock-fill" />
-                </span>
-                <div className="overflow-hidden">
-                  <h4 className="mb-0 text-white text-truncate" style={{ fontSize: "0.95rem" }} title={activeDocument.title}>
-                    {activeDocument.title}
-                  </h4>
-                  <small className="text-truncate d-block" style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.82)" }}>
-                    🔒 Protected Study Viewer &bull; {concept.name} &bull; (Downloads Disabled)
-                  </small>
-                </div>
-              </div>
-              <div className="oc-viewer-controls d-flex align-items-center flex-wrap gap-2">
-                {/* Zoom Controls (Visible for documents) */}
-                <div className="oc-doc-zoom-toolbar" role="group" aria-label="Document Zoom">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => setDocZoom((prev) => Math.max(0.5, +(prev - 0.25).toFixed(2)))}
-                    title="Zoom Out (-25%)"
-                    disabled={docZoom <= 0.5}
-                  >
-                    <i className="bi bi-dash-lg" />
-                  </button>
-                  <span
-                    className="oc-doc-zoom-val"
-                    onClick={() => setDocZoom(1)}
-                    title="Click to reset zoom to 100%"
-                  >
-                    {Math.round(docZoom * 100)}%
-                  </span>
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => setDocZoom((prev) => Math.min(2.5, +(prev + 0.25).toFixed(2)))}
-                    title="Zoom In (+25%)"
-                    disabled={docZoom >= 2.5}
-                  >
-                    <i className="bi bi-plus-lg" />
-                  </button>
-                  {docZoom !== 1 && (
-                    <button
-                      type="button"
-                      className="btn oc-doc-zoom-reset-btn"
-                      onClick={() => setDocZoom(1)}
-                      title="Reset Zoom to 100%"
-                    >
-                      <i className="bi bi-arrow-counterclockwise me-1" /> Reset
-                    </button>
-                  )}
-                </div>
-
-                {/* Sizing Switcher (Medium vs Entire Website) */}
-                <div className="oc-view-size-btn-group" role="group" aria-label="Viewer Size">
-                  <button
-                    type="button"
-                    className={`btn ${docViewSize === "medium" ? "active" : "oc-btn-medium-prominent"}`}
-                    onClick={() => {
-                      setDocViewSize("medium");
-                      setDocZoom(1);
-                    }}
-                    title="Switch to Medium View"
-                  >
-                    <i className="bi bi-window me-1" />
-                    <span>Medium</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${docViewSize === "expanded" ? "active" : "oc-btn-entire-prominent"}`}
-                    onClick={() => setDocViewSize("expanded")}
-                    title="Display Entire Website Width"
-                  >
-                    <i className="bi bi-arrows-fullscreen me-1" />
-                    <span>Entire Website</span>
-                  </button>
-                </div>
-
-                {/* Close Button */}
-                <button
-                  type="button"
-                  className="btn btn-sm btn-dark text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                  style={{ width: 32, height: 32, padding: 0, border: "1px solid rgba(255, 255, 255, 0.25)" }}
-                  onClick={() => {
-                    setActiveDocument(null);
-                    setDocZoom(1);
-                  }}
-                  aria-label="Close"
-                >
-                  <i className="bi bi-x-lg" />
-                </button>
-              </div>
-            </div>
-
-            <div
-              className={`oc-doc-viewer-body position-relative ${docViewSize === "expanded" ? "oc-doc-viewer-body--expanded" : "oc-doc-viewer-body--medium"}`}
-              style={{ backgroundColor: "#0f172a", userSelect: "none" }}
-              onContextMenu={(e) => e.preventDefault()}
-            >
-              {!isVideoDoc(activeDocument) && (
-                <>
-                  <div
-                    className="position-absolute top-0 start-0 end-0 mx-3 mt-3 px-3 py-2 rounded-3 d-flex align-items-center gap-2"
-                    style={{
-                      zIndex: 5,
-                      pointerEvents: "none",
-                      color: "#f8fafc",
-                      background: "rgba(127, 29, 29, 0.94)",
-                      border: "1px solid rgba(254, 202, 202, 0.45)",
-                      boxShadow: "0 8px 22px rgba(0, 0, 0, 0.3)",
-                      fontSize: "0.78rem",
-                      lineHeight: 1.4,
-                    }}
-                    role="status"
-                  >
-                    <i className="bi bi-shield-lock-fill text-warning flex-shrink-0" aria-hidden="true" />
-                    <span>
-                      <strong>Security notice:</strong> This document is view-only. Copying, printing, downloading, screen capture, and recording are restricted and monitored.
-                    </span>
-                  </div>
-                  <DynamicWatermark
-                    username={user?.name || "Student Viewer"}
-                    sessionId="CURRICULUM-DRM"
-                    sectionTitle={`${concept.name} - ${activeDocument.title}`}
-                  />
-                </>
-              )}
-
-              {isTextDocument(activeDocument) ? (
-                <div
-                  className="w-100 h-100 p-3"
-                  style={{
-                    minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh",
-                    background: "#0f172a",
-                    overflow: "auto",
-                  }}
-                  onContextMenu={(e) => e.preventDefault()}
-                >
-                  <div
-                    className="w-100 h-100 rounded-3 overflow-hidden bg-white"
-                    style={{
-                      minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "68vh",
-                    }}
-                  >
-                    <iframe
-                      src={getDocumentUrl(activeDocument)}
-                      title={activeDocument.title || "Text document"}
-                      className="w-100 h-100 border-0"
-                      style={{
-                        minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "68vh",
-                        background: "#fff",
-                      }}
-                      loading="eager"
-                      referrerPolicy="no-referrer"
-                      sandbox="allow-same-origin"
-                    />
-                  </div>
-                </div>
-              ) : isImageDoc(activeDocument) ? (
-                <div
-                  className="w-100 h-100 p-3"
-                  style={{
-                    minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh",
-                    overflow: "auto",
-                    display: "flex",
-                    alignItems: docZoom <= 1 ? "center" : "flex-start",
-                    justifyContent: docZoom <= 1 ? "center" : "flex-start",
-                  }}
-                >
-                  <div
-                    style={{
-                      margin: "auto",
-                      textAlign: "center",
-                      transition: "all 0.2s ease-out",
-                    }}
-                  >
-                    <img
-                      src={activeDocument.file_url || activeDocument.file_path}
-                      alt={activeDocument.title}
-                      style={{
-                        width: docZoom !== 1 ? `${Math.round(docZoom * 100)}%` : "100%",
-                        maxWidth: docZoom <= 1 ? "100%" : "none",
-                        maxHeight: docZoom <= 1 ? (docViewSize === "expanded" ? "calc(100vh - 200px)" : "70vh") : "none",
-                        objectFit: "contain",
-                        userSelect: "none",
-                        WebkitUserSelect: "none",
-                        pointerEvents: "none",
-                        borderRadius: "8px",
-                        boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-                      }}
-                      draggable={false}
-                    />
-                  </div>
-                </div>
-              ) : isPdfDoc(activeDocument) ? (
-                <div
-                  className="w-100 h-100 position-relative"
-                  style={{
-                    minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh",
-                    overflow: "auto",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${Math.round(docZoom * 100)}%`,
-                      minHeight: docViewSize === "expanded" ? (docZoom > 1 ? `calc(${Math.round(docZoom * 100)}vh - 180px)` : "calc(100vh - 180px)") : (docZoom > 1 ? `${Math.round(docZoom * 72)}vh` : "72vh"),
-                      height: docZoom > 1 ? `${Math.round(docZoom * 100)}%` : "100%",
-                      margin: "0 auto",
-                      transition: "width 0.2s ease-out, min-height 0.2s ease-out",
-                    }}
-                  >
-                    <iframe
-                      key={`doc-pdf-${activeDocument.id || activeDocument._id || activeDocument.title}-${docViewSize}`}
-                      src={`${activeDocument.file_url || activeDocument.file_path}#view=FitH&toolbar=0&navpanes=0`}
-                      title={activeDocument.title}
-                      className="w-100 h-100 rounded border-0"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        minHeight: docViewSize === "expanded" ? (docZoom > 1 ? `calc(${Math.round(docZoom * 100)}vh - 180px)` : "calc(100vh - 180px)") : (docZoom > 1 ? `${Math.round(docZoom * 72)}vh` : "72vh"),
-                        backgroundColor: "#1e293b",
-                        display: "block",
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : isVideoDoc(activeDocument) ? (
-                <div className="w-100 h-100 p-2 d-flex align-items-center justify-content-center" style={{ minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh" }}>
-                  <div className="w-100 h-100 rounded-3 overflow-hidden bg-black shadow position-relative d-flex align-items-center justify-content-center" style={{ maxHeight: docViewSize === "expanded" ? "calc(96vh - 150px)" : "68vh" }}>
-                    <video
-                      controls
-                      autoPlay
-                      playsInline
-                      controlsList="nodownload noplaybackrate noremoteplayback"
-                      disablePictureInPicture
-                      disableRemotePlayback
-                      onContextMenu={(e) => e.preventDefault()}
-                      src={activeDocument.file_url || activeDocument.file_path}
-                      className="w-100 h-100"
-                      style={{ maxHeight: docViewSize === "expanded" ? "calc(96vh - 150px)" : "68vh", objectFit: "contain" }}
-                    >
-                      <source src={activeDocument.file_url || activeDocument.file_path} />
-                      Your browser does not support video playback.
-                    </video>
-                  </div>
-                </div>
-              ) : (
-                <div className="d-flex flex-column align-items-center justify-content-center p-5 text-center text-white" style={{ minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh" }}>
-                  <div className="p-4 rounded-circle bg-dark-subtle mb-3" style={{ width: 84, height: 84, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <i className={`bi ${getDocIcon(activeDocument.file_type)}`} style={{ fontSize: "2.8rem" }} />
-                  </div>
-                  <h4 className="fw-bold mb-2">{activeDocument.title}</h4>
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <span className="badge bg-primary text-uppercase px-3 py-1">{activeDocument.file_type || "DOCUMENT"}</span>
-                    {activeDocument.formatted_size && <span className="badge bg-secondary px-3 py-1">{activeDocument.formatted_size}</span>}
-                  </div>
-                  <p className="text-white-50 small mb-4" style={{ maxWidth: 520, lineHeight: 1.6 }}>
-                    {activeDocument.description || "This lecture resource is protected under the Online Class DRM Academic Policy. Direct downloading and offline distribution are restricted."}
-                  </p>
-                  <div className="alert alert-dark border border-secondary-subtle py-2 px-4 rounded-pill d-inline-flex align-items-center gap-2 text-white-50" style={{ fontSize: "0.8rem" }}>
-                    <i className="bi bi-shield-check text-success" />
-                    <span>Academic DRM Active &bull; Monitored Viewer Session</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="oc-doc-viewer-footer d-flex justify-content-between align-items-center">
-              <span className="text-white-50 small d-flex align-items-center gap-2">
-                <i className="bi bi-shield-fill-check text-success" />
-                <span>Anti-Download &amp; Academic Watermarking Active &bull; View Only</span>
-              </span>
-              <button
-                type="button"
-                className="btn btn-sm btn-secondary rounded-pill px-4"
-                onClick={() => setActiveDocument(null)}
-              >
-                Close Viewer
-              </button>
             </div>
           </div>
         </div>
