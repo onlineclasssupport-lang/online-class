@@ -43,6 +43,7 @@ export default function GlobalSecurityGuard({ children }) {
   const ctrlDownRef = useRef(false);
 
   const isHoveringIframeRef = useRef(false);
+  const awayGuardRef = useRef(null);
 
   const sessionId = getOrCreateSessionId();
   const username = user?.name || "Student User";
@@ -124,6 +125,26 @@ export default function GlobalSecurityGuard({ children }) {
     },
     [clearClipboard, pauseProtectedMedia, logSecurityIncident]
   );
+
+  // ─── MOBILE APP-SWITCHER / LOCK-SCREEN GUARD ──────────────────────────────
+  // A website cannot detect or block a phone's screenshot/screen-record
+  // gesture (no browser API exists for that). What IS real and preventable:
+  // the OS takes a live snapshot of the page the instant the app is
+  // backgrounded (for the app-switcher / "recents" preview, or on screen
+  // lock). This toggles a full-screen cover the moment that happens, so that
+  // snapshot captures only this cover — never the protected document/video —
+  // and removes it the instant the app is foregrounded again.
+  const showAwayGuard = useCallback(() => {
+    try {
+      awayGuardRef.current?.classList.add("oc-away-guard--visible");
+    } catch {}
+  }, []);
+
+  const hideAwayGuard = useCallback(() => {
+    try {
+      awayGuardRef.current?.classList.remove("oc-away-guard--visible");
+    } catch {}
+  }, []);
 
   // Resume viewing: student acknowledges and returns cleanly to learning
   const dismissSecurityScreen = useCallback(() => {
@@ -788,7 +809,24 @@ export default function GlobalSecurityGuard({ children }) {
       clearClipboard();
       if (document.hidden) {
         pauseProtectedMedia();
+        showAwayGuard();
+        logSecurityIncident("app_backgrounded", { trigger: "visibilitychange" });
+      } else {
+        hideAwayGuard();
       }
+    };
+
+    // Mobile Safari/Chrome sometimes tear down or suspend the page without a
+    // matching visibilitychange event (e.g. swiping the app away, the OS
+    // freezing a backgrounded tab). pagehide/pageshow catch those cases so
+    // the cover never gets "stuck" open or fails to appear.
+    const handlePageHide = () => {
+      clearClipboard();
+      pauseProtectedMedia();
+      showAwayGuard();
+    };
+    const handlePageShow = () => {
+      hideAwayGuard();
     };
 
     const handleBeforePrint = (e) => {
@@ -826,6 +864,8 @@ export default function GlobalSecurityGuard({ children }) {
     window.addEventListener("blur", handleWindowBlur, opts);
     window.addEventListener("focus", handleWindowFocus, optsPassv);
     document.addEventListener("visibilitychange", handleVisibilityChange, opts);
+    window.addEventListener("pagehide", handlePageHide, optsPassv);
+    window.addEventListener("pageshow", handlePageShow, optsPassv);
     window.addEventListener("pointerover", handlePointerOver, optsPassv);
     window.addEventListener("pointerout", handlePointerOut, optsPassv);
 
@@ -841,11 +881,13 @@ export default function GlobalSecurityGuard({ children }) {
       window.removeEventListener("blur", handleWindowBlur, opts);
       window.removeEventListener("focus", handleWindowFocus, optsPassv);
       document.removeEventListener("visibilitychange", handleVisibilityChange, opts);
+      window.removeEventListener("pagehide", handlePageHide, optsPassv);
+      window.removeEventListener("pageshow", handlePageShow, optsPassv);
       window.removeEventListener("pointerover", handlePointerOver, optsPassv);
       window.removeEventListener("pointerout", handlePointerOut, optsPassv);
       if (infoToastTimerRef.current) clearTimeout(infoToastTimerRef.current);
     };
-  }, [activateFullSecurityScreen, clearClipboard, pauseProtectedMedia, logSecurityIncident]);
+  }, [activateFullSecurityScreen, clearClipboard, pauseProtectedMedia, logSecurityIncident, showAwayGuard, hideAwayGuard]);
 
   // ─── LAYER 5: Background Clipboard Guard ───────────────────────────────────
   useEffect(() => {
@@ -871,6 +913,21 @@ export default function GlobalSecurityGuard({ children }) {
   return (
     <>
       {children}
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          APP-SWITCHER / LOCK-SCREEN COVER
+          Always mounted (never conditionally rendered) so toggling its
+          visibility via classList is instantaneous — no React render pass to
+          wait for — covering the screen before the OS can snapshot it for
+          the recents/app-switcher preview or during screen lock.
+          ───────────────────────────────────────────────────────────────────── */}
+      <div ref={awayGuardRef} className="oc-away-guard" aria-hidden="true">
+        <i className="bi bi-shield-lock-fill oc-away-guard__icon" />
+        <div className="oc-away-guard__title">Content Protected</div>
+        <div className="oc-away-guard__sub">
+          Educational materials are hidden while Online Class isn&rsquo;t in view.
+        </div>
+      </div>
 
       {/* ─────────────────────────────────────────────────────────────────────
           FULL-SCREEN OFFICIAL SECURITY DISPLAY
