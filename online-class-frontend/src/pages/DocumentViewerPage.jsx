@@ -121,7 +121,12 @@ export default function DocumentViewerPage() {
   }, [loading, concept, activeDocument, unlocked]);
 
   const goBackToConcept = () => {
-    navigate(`/lectures-and-materials/concept/${identifier}`);
+    // Send the user back to the Documents tab specifically, since that's
+    // where "View Online" was clicked from, rather than the concept page's
+    // default Info tab.
+    navigate(`/lectures-and-materials/concept/${identifier}`, {
+      state: { activeTab: "documents" },
+    });
   };
 
   // ---- helpers (identical logic to ConceptDetailsPage) ----
