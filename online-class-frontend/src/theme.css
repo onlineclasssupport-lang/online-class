@@ -2103,7 +2103,7 @@ body {
   background: #0f172a !important;
   padding: 0.6rem 1.25rem;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
   border-bottom: 2px solid rgba(59, 130, 246, 0.5) !important;
@@ -2123,20 +2123,20 @@ body {
   line-height: normal;
 }
 
-/* Left title group — shrinks gracefully */
+/* Left title group — shrinks gracefully, same in Medium & Entire Website */
 .oc-doc-viewer-header > div:first-child {
-  flex: 1 1 200px;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
 }
 
-/* Right controls group — never shrinks, never clips */
+/* Right controls group — never shrinks, never wraps away, identical in both view modes */
 .oc-doc-viewer-header > div:last-child,
 .oc-doc-viewer-header > .oc-viewer-controls {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.45rem;
   row-gap: 0.4rem;
   overflow: visible;
