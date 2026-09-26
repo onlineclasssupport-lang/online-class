@@ -5230,6 +5230,56 @@ html.oc-screen-lock-active body {
   overflow: hidden !important;
 }
 
+/* ── Mobile app-switcher / lock-screen cover ──────────────────────────────
+   Always present in the DOM; hidden via opacity+visibility so toggling it
+   is a single classList call with no React render/mount delay. No
+   transition on the visible state — it must appear on the very next paint,
+   before the OS can capture a backgrounded-app snapshot. */
+.oc-away-guard {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: radial-gradient(circle at center, #1c080d 0%, #0e0508 55%, #050204 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: #ffffff;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.oc-away-guard--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.oc-away-guard__icon {
+  font-size: 2.75rem;
+  color: #ef4444;
+  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.85));
+  margin-bottom: 0.25rem;
+}
+
+.oc-away-guard__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.oc-away-guard__sub {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 320px;
+  line-height: 1.4;
+}
+
 .oc-full-security-screen {
   position: fixed;
   inset: 0;
