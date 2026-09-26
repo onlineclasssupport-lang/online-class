@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import CareerPathwaysPage from "./pages/CareerPathwaysPage.jsx";
 import CurriculumPage from "./pages/CurriculumPage.jsx";
 import ConceptDetailsPage from "./pages/ConceptDetailsPage.jsx";
+import DocumentViewerPage from "./pages/DocumentViewerPage.jsx";
 import SectionPage from "./pages/SectionPage.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
@@ -39,6 +40,10 @@ export default function App() {
         {/* 6. Concept Details View (Opens on 'Know more') */}
         <Route path="/lectures-and-materials/concept/:identifier" element={<ConceptDetailsPage />} />
         <Route path="/concept/:identifier" element={<ConceptDetailsPage />} />
+
+        {/* 6b. Protected Document Viewer (Opens on 'View Online' as its own page) */}
+        <Route path="/lectures-and-materials/concept/:identifier/document/:docId" element={<DocumentViewerPage />} />
+        <Route path="/concept/:identifier/document/:docId" element={<DocumentViewerPage />} />
 
         {/* Individual Section Pages for online classes, suggestions, proxy support, registrations */}
         {Object.values(SECTIONS)
