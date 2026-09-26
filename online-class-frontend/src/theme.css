@@ -2041,12 +2041,12 @@ body {
 /* Expanded Backdrop: Zeroes padding & flex centering trap and cleanly offsets below website navbar */
 .oc-doc-viewer-modal-backdrop--expanded {
   position: fixed !important;
-  top: var(--oc-navbar-height, 60px) !important;
+  top: var(--oc-navbar-height, 68px) !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
-  height: calc(100vh - var(--oc-navbar-height, 60px)) !important;
+  height: calc(100vh - var(--oc-navbar-height, 68px)) !important;
   padding: 0 !important;
   margin: 0 !important;
   display: flex !important;
@@ -2055,7 +2055,7 @@ body {
   justify-content: flex-start !important;
   backdrop-filter: none !important;
   background: rgba(15, 23, 42, 0.98) !important;
-  z-index: 1020 !important;
+  z-index: 1040 !important;
   overflow: hidden !important;
 }
 
@@ -2081,20 +2081,20 @@ body {
 
 .oc-doc-viewer-modal--expanded {
   position: fixed !important;
-  top: var(--oc-navbar-height, 60px) !important;
+  top: var(--oc-navbar-height, 68px) !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
   max-width: 100vw !important;
-  height: calc(100vh - var(--oc-navbar-height, 60px)) !important;
-  max-height: calc(100vh - var(--oc-navbar-height, 60px)) !important;
+  height: calc(100vh - var(--oc-navbar-height, 68px)) !important;
+  max-height: calc(100vh - var(--oc-navbar-height, 68px)) !important;
   margin: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   border-radius: 0 !important;
   border: none !important;
-  z-index: 1025 !important;
+  z-index: 1045 !important;
   overflow: hidden !important;
   box-shadow: none !important;
 }
@@ -2160,8 +2160,8 @@ body {
 .oc-doc-viewer-body--expanded {
   flex: 1 1 auto !important;
   min-height: 0 !important;
-  height: calc(100vh - var(--oc-navbar-height, 60px) - 105px) !important;
-  max-height: calc(100vh - var(--oc-navbar-height, 60px) - 105px) !important;
+  height: calc(100vh - var(--oc-navbar-height, 68px) - 105px) !important;
+  max-height: calc(100vh - var(--oc-navbar-height, 68px) - 105px) !important;
   overflow: auto !important;
 }
 
