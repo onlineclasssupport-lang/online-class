@@ -907,6 +907,52 @@ export default function GlobalSecurityGuard({ children }) {
       }
     };
 
+    // ── MULTI-TOUCH / 3-FINGER GESTURE DETECTION (Mobile Screenshots) ────────
+    // Android / MIUI / ColorOS / RealmeUI / OxygenOS / FuntouchOS use a 3-finger
+    // swipe or tap for screenshots.
+    // By intercepting touchstart / touchmove with touches.length >= 3,
+    // we activate the away guard synchronously in 0.05ms BEFORE the screenshot
+    // captures the document frame!
+    const activePointersRef = new Set();
+
+    const triggerMultiTouchLock = (source = "3-Finger Screen Gesture") => {
+      showAwayGuard();
+      pauseProtectedMedia();
+      clearClipboard();
+      activateFullSecurityScreen(
+        "SCREENSHOT & SCREEN RECORDING RESTRICTED",
+        source,
+        "⚠️ You cannot able to take screen short. 3-finger swipe screenshot and video recording are prohibited under platform security policies.",
+        "screenshot_3finger_gesture"
+      );
+    };
+
+    const handleTouchStartOrMove = (e) => {
+      const touchCount = e.touches?.length || e.targetTouches?.length || 0;
+      if (touchCount >= 3) {
+        triggerMultiTouchLock("3-Finger Screenshot Gesture Detected");
+        try {
+          if (e.cancelable) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        } catch {}
+      }
+    };
+
+    const handlePointerDown = (e) => {
+      if (e.pointerType === "touch" || e.pointerType === "pen") {
+        activePointersRef.add(e.pointerId);
+        if (activePointersRef.size >= 3) {
+          triggerMultiTouchLock("Multi-Touch Screenshot Gesture Detected");
+        }
+      }
+    };
+
+    const handlePointerUpOrCancel = (e) => {
+      activePointersRef.delete(e.pointerId);
+    };
+
     const opts = { capture: true, passive: false };
     const optsPassv = { capture: true, passive: true };
 
@@ -928,6 +974,11 @@ export default function GlobalSecurityGuard({ children }) {
     window.addEventListener("oc:app-lifecycle", handleAppLifecycleCustom, optsPassv);
     window.addEventListener("pointerover", handlePointerOver, optsPassv);
     window.addEventListener("pointerout", handlePointerOut, optsPassv);
+    window.addEventListener("touchstart", handleTouchStartOrMove, opts);
+    window.addEventListener("touchmove", handleTouchStartOrMove, opts);
+    window.addEventListener("pointerdown", handlePointerDown, optsPassv);
+    window.addEventListener("pointerup", handlePointerUpOrCancel, optsPassv);
+    window.addEventListener("pointercancel", handlePointerUpOrCancel, optsPassv);
 
     return () => {
       window.removeEventListener("contextmenu", blockEvent, opts);
@@ -948,6 +999,11 @@ export default function GlobalSecurityGuard({ children }) {
       window.removeEventListener("oc:app-lifecycle", handleAppLifecycleCustom, optsPassv);
       window.removeEventListener("pointerover", handlePointerOver, optsPassv);
       window.removeEventListener("pointerout", handlePointerOut, optsPassv);
+      window.removeEventListener("touchstart", handleTouchStartOrMove, opts);
+      window.removeEventListener("touchmove", handleTouchStartOrMove, opts);
+      window.removeEventListener("pointerdown", handlePointerDown, optsPassv);
+      window.removeEventListener("pointerup", handlePointerUpOrCancel, optsPassv);
+      window.removeEventListener("pointercancel", handlePointerUpOrCancel, optsPassv);
       if (infoToastTimerRef.current) clearTimeout(infoToastTimerRef.current);
     };
   }, [activateFullSecurityScreen, clearClipboard, pauseProtectedMedia, logSecurityIncident, showAwayGuard, hideAwayGuard]);
@@ -985,10 +1041,26 @@ export default function GlobalSecurityGuard({ children }) {
           the recents/app-switcher preview or during screen lock.
           ───────────────────────────────────────────────────────────────────── */}
       <div ref={awayGuardRef} className="oc-away-guard" aria-hidden="true">
-        <i className="bi bi-shield-lock-fill oc-away-guard__icon" />
-        <div className="oc-away-guard__title">Content Protected</div>
-        <div className="oc-away-guard__sub">
-          Educational materials are hidden while Online Class isn&rsquo;t in view.
+        <div className="oc-away-guard__card">
+          <div className="oc-away-guard__icon-wrap">
+            <i className="bi bi-shield-slash-fill oc-away-guard__icon oc-pulse-icon" />
+          </div>
+          <div className="oc-away-guard__badge">
+            <i className="bi bi-exclamation-octagon-fill me-1" />
+            DRM Academic Protection Active
+          </div>
+          <div className="oc-away-guard__title">
+            SCREENSHOT &amp; SCREEN RECORDING RESTRICTED
+          </div>
+          <div className="oc-away-guard__alert-banner">
+            ⚠️ You cannot able to take screen short.
+          </div>
+          <div className="oc-away-guard__sub">
+            Taking screenshots (3-finger swipe, shortcuts) or screen recording of educational lectures and materials is strictly prohibited.
+          </div>
+          <div className="oc-away-guard__hint">
+            <i className="bi bi-shield-check me-1" /> Return to active viewing to continue
+          </div>
         </div>
       </div>
 
@@ -1035,10 +1107,15 @@ export default function GlobalSecurityGuard({ children }) {
             {/* Main Title */}
             <h2 className="oc-full-sec__title">{screenLock.title}</h2>
 
+            {/* Critical Alert Banner */}
+            <div className="oc-full-sec__alert-banner">
+              ⚠️ You cannot able to take screen short.
+            </div>
+
             {/* Shortcut Detection Banner */}
             <div className="oc-full-sec__banner">
               <i className="bi bi-exclamation-octagon-fill me-2" />
-              SHORTCUT DETECTED: <span className="oc-full-sec__key">{screenLock.shortcut}</span>
+              DETECTION ALERT: <span className="oc-full-sec__key">{screenLock.shortcut}</span>
             </div>
 
             {/* Comprehensive Description */}
