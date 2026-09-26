@@ -717,6 +717,31 @@ export default function GlobalSecurityGuard({ children }) {
     // Game Bar Recording (Win+Alt+R) activates, the OS consumes the keystroke
     // and causes a window blur. We correlate the rolling timestamps to lock down immediately!
     const handleWindowBlur = () => {
+      // Safety check: Never interfere with Razorpay or active payment popups/iframes
+      const isRazorpayActive = () => {
+        try {
+          if (document.querySelector('.razorpay-container, .razorpay-backdrop, [class*="razorpay"], iframe[src*="razorpay"]')) {
+            return true;
+          }
+          if (
+            document.activeElement &&
+            (document.activeElement.tagName === "IFRAME" ||
+              document.activeElement.closest?.('.razorpay-container, [class*="razorpay"]'))
+          ) {
+            return true;
+          }
+        } catch {}
+        return false;
+      };
+
+      if (isRazorpayActive() || isHoveringIframeRef.current) {
+        metaDownRef.current = false;
+        shiftDownRef.current = false;
+        altDownRef.current = false;
+        ctrlDownRef.current = false;
+        return;
+      }
+
       const now = Date.now();
       const timeSinceMeta = now - lastMetaTimeRef.current;
       const timeSinceShift = now - lastShiftTimeRef.current;
@@ -807,26 +832,58 @@ export default function GlobalSecurityGuard({ children }) {
 
     const handleVisibilityChange = () => {
       clearClipboard();
-      if (document.hidden) {
+      if (document.hidden || document.visibilityState === "hidden") {
         pauseProtectedMedia();
         showAwayGuard();
         logSecurityIncident("app_backgrounded", { trigger: "visibilitychange" });
-      } else {
+      } else if (document.visibilityState === "visible" && !document.hidden) {
         hideAwayGuard();
       }
     };
 
-    // Mobile Safari/Chrome sometimes tear down or suspend the page without a
-    // matching visibilitychange event (e.g. swiping the app away, the OS
-    // freezing a backgrounded tab). pagehide/pageshow catch those cases so
-    // the cover never gets "stuck" open or fails to appear.
-    const handlePageHide = () => {
+    // Mobile Safari/Chrome teardown or suspension (e.g. swiping the app away,
+    // the OS freezing a backgrounded tab, Home button press, screen lock).
+    // e.persisted === true indicates the page is entering / stored in bfcache (iOS Safari).
+    const handlePageHide = (e) => {
       clearClipboard();
       pauseProtectedMedia();
       showAwayGuard();
+      if (e?.persisted) {
+        logSecurityIncident("app_bfcache_entered", { trigger: "pagehide_persisted" });
+      }
     };
+
+    // On pageshow (e.g. returning from bfcache or multitasking switcher),
+    // verify the page is actually foregrounded and visible before lifting the guard.
     const handlePageShow = () => {
-      hideAwayGuard();
+      if (document.visibilityState === "visible" && !document.hidden) {
+        hideAwayGuard();
+      }
+    };
+
+    // Page Lifecycle API: freeze / resume (Modern Chromium, Android Chrome, PWA)
+    // Fires when the browser/OS suspends the task or freezes the CPU execution context.
+    const handleFreeze = () => {
+      clearClipboard();
+      pauseProtectedMedia();
+      showAwayGuard();
+      logSecurityIncident("app_frozen", { trigger: "lifecycle_freeze" });
+    };
+
+    const handleResume = () => {
+      if (document.visibilityState === "visible" && !document.hidden) {
+        hideAwayGuard();
+      }
+    };
+
+    // Integration with PageLifecycleGuard custom event if active
+    const handleAppLifecycleCustom = (e) => {
+      if (e?.detail?.state === "sleeping") {
+        pauseProtectedMedia();
+        showAwayGuard();
+      } else if (e?.detail?.state === "active" && !document.hidden) {
+        hideAwayGuard();
+      }
     };
 
     const handleBeforePrint = (e) => {
@@ -866,6 +923,9 @@ export default function GlobalSecurityGuard({ children }) {
     document.addEventListener("visibilitychange", handleVisibilityChange, opts);
     window.addEventListener("pagehide", handlePageHide, optsPassv);
     window.addEventListener("pageshow", handlePageShow, optsPassv);
+    document.addEventListener("freeze", handleFreeze, optsPassv);
+    document.addEventListener("resume", handleResume, optsPassv);
+    window.addEventListener("oc:app-lifecycle", handleAppLifecycleCustom, optsPassv);
     window.addEventListener("pointerover", handlePointerOver, optsPassv);
     window.addEventListener("pointerout", handlePointerOut, optsPassv);
 
@@ -883,6 +943,9 @@ export default function GlobalSecurityGuard({ children }) {
       document.removeEventListener("visibilitychange", handleVisibilityChange, opts);
       window.removeEventListener("pagehide", handlePageHide, optsPassv);
       window.removeEventListener("pageshow", handlePageShow, optsPassv);
+      document.removeEventListener("freeze", handleFreeze, optsPassv);
+      document.removeEventListener("resume", handleResume, optsPassv);
+      window.removeEventListener("oc:app-lifecycle", handleAppLifecycleCustom, optsPassv);
       window.removeEventListener("pointerover", handlePointerOver, optsPassv);
       window.removeEventListener("pointerout", handlePointerOut, optsPassv);
       if (infoToastTimerRef.current) clearTimeout(infoToastTimerRef.current);
