@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   default as api,
   fetchConceptDetails,
@@ -18,6 +18,7 @@ import EducationLogo from "../components/EducationLogo.jsx";
 export default function ConceptDetailsPage() {
   const { identifier } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthed, user } = useUserAuth();
   const { authRequired } = useSiteSettings();
 
@@ -26,7 +27,10 @@ export default function ConceptDetailsPage() {
   const [paymentEnabled, setPaymentEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("info"); // 'info' | 'documents' | 'videos'
+  // Defaults to the Info tab, same as before. When arriving back from the
+  // document viewer's Back button, that page passes { activeTab: "documents" }
+  // in navigation state so the user lands on the Documents tab instead.
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || "info"); // 'info' | 'documents' | 'videos'
 
   // Payment processing state
   const [paying, setPaying] = useState(false);
