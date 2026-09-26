@@ -6415,3 +6415,641 @@ html.oc-screen-lock-active body {
   padding-top: 0.18rem !important;
   font-size: 0.72rem !important;
 }
+
+/* ============================================================
+   ONLINE CLASS — Security System CSS
+   All classes used by GlobalSecurityGuard.jsx,
+   ProtectedContentContainer.jsx, DynamicWatermark.jsx,
+   and useContentProtection.js are defined here.
+
+   TECHNICAL LIMITATIONS (honest documentation):
+   - A normal website CANNOT prevent OS-level screenshots on
+     Android or iOS — no browser API exists for this.
+   - A normal website CANNOT detect when the user presses the
+     hardware screenshot button on any mobile device.
+   - A normal website CANNOT prevent another camera recording
+     the screen.
+   - What IS achievable (and implemented here):
+     1. Covering protected content the instant the page is
+        hidden/backgrounded (before the OS snapshots the
+        app-switcher preview).
+     2. Intercepting browser-level screen-share (getDisplayMedia).
+     3. Intercepting desktop screenshot keyboard shortcuts.
+     4. Persistent visible watermark for traceability.
+     5. Clipboard / context-menu / drag protection.
+   ============================================================ */
+
+/* ────────────────────────────────────────────────────────────
+   LAYER A — HTML-level scroll lock (applied to <html>)
+   Used when the full-screen DRM alert is active (desktop).
+   ──────────────────────────────────────────────────────────── */
+html.oc-screen-lock-active {
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+/* Keep the security screen itself interactive */
+html.oc-screen-lock-active .oc-full-security-screen {
+  pointer-events: all !important;
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER B — AWAY GUARD (Mobile App-Switcher / Recents Cover)
+
+   This is the PRIMARY mobile protection layer.
+
+   Always mounted in the DOM (never conditionally rendered via
+   React state) so toggling its visibility via classList is
+   instantaneous — zero React render delay.
+
+   The guard covers the entire viewport the moment
+   document.visibilityState becomes "hidden" (or pagehide /
+   freeze fires), before the OS can capture the page surface
+   for the app-switcher / Recents preview.
+
+   Uses GPU-composited layers (transform: translateZ(0)) so
+   the browser can paint it before the OS snapshots the frame.
+   ──────────────────────────────────────────────────────────── */
+.oc-away-guard {
+  /* Always present in DOM, but hidden by default */
+  position: fixed;
+  inset: 0;
+
+  /* Maximum z-index — sits above everything including Razorpay */
+  z-index: 2147483647;
+
+  /* Deep navy background — opaque, no transparency */
+  background: #060d1d;
+
+  /* GPU composition layer — paint priority */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: opacity, visibility;
+
+  /* Hidden by default — NO transition so activation is instant */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  /* Safe-area insets for iPhone notch / Dynamic Island */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+
+  /* Prevent content from leaking through */
+  overflow: hidden;
+}
+
+/* Active state — toggled synchronously via classList in JS */
+.oc-away-guard.oc-away-guard--visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+/* Shield icon inside the away guard */
+.oc-away-guard__icon {
+  font-size: 3rem;
+  color: rgba(37, 99, 235, 0.6);
+  display: block;
+}
+
+/* "Content Protected" title */
+.oc-away-guard__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Sub-text */
+.oc-away-guard__sub {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+/* Landscape orientation: compact layout */
+@media (orientation: landscape) and (max-height: 500px) {
+  .oc-away-guard__icon {
+    font-size: 2rem;
+  }
+  .oc-away-guard__title {
+    font-size: 0.95rem;
+  }
+  .oc-away-guard__sub {
+    display: none;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER C — FULL-SCREEN DRM SECURITY ALERT
+   (Desktop — activated by keyboard shortcut detection)
+
+   Activated when:
+   - Win+G (Xbox Game Bar)
+   - Win+Shift+S (Snipping Tool)
+   - Win+Alt+R (Game Bar Recording)
+   - PrtScn (Print Screen)
+   - Cmd+Shift+3/4/5 (macOS screenshots)
+   - Alt+Z / Alt+F9 (NVIDIA ShadowPlay)
+   - MediaRecorder / getDisplayMedia API called
+   ──────────────────────────────────────────────────────────── */
+.oc-full-security-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: linear-gradient(135deg, #060d1d 0%, #0b152d 50%, #060d1d 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  overflow: hidden;
+
+  /* GPU layer */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+
+  /* Safe-area for mobile */
+  padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Scrolling watermark background text ── */
+.oc-full-sec__watermark-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.07;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  padding: 1rem;
+}
+
+.oc-full-sec__watermark-row {
+  display: flex;
+  gap: 2rem;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #60a5fa;
+  text-transform: uppercase;
+  transform: rotate(-12deg) translateX(-5%);
+}
+
+.oc-full-sec__watermark-row span {
+  flex-shrink: 0;
+}
+
+/* ── Central card ── */
+.oc-full-sec__card {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Shield icon with pulse animation ── */
+.oc-full-sec__icon-wrap {
+  margin-bottom: 1rem;
+}
+
+.oc-full-sec__pulse-icon {
+  font-size: 3.5rem;
+  color: #ef4444;
+  animation: oc-sec-pulse 1.6s ease-in-out infinite;
+  display: block;
+}
+
+@keyframes oc-sec-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.08); }
+}
+
+/* ── "Institutional DRM Security Active" badge ── */
+.oc-full-sec__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  border-radius: 9999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+/* ── Main title ── */
+.oc-full-sec__title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.02em;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+/* ── "SHORTCUT DETECTED" banner ── */
+.oc-full-sec__banner {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  color: #fbbf24;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+/* Detected shortcut key name */
+.oc-full-sec__key {
+  background: rgba(251, 191, 36, 0.2);
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  font-family: var(--font-family-mono, monospace);
+  font-size: 0.78rem;
+}
+
+/* ── Description paragraph ── */
+.oc-full-sec__desc {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.85rem;
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Forensic audit metadata box ── */
+.oc-full-sec__audit-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.oc-full-sec__audit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.oc-full-sec__audit-row:last-child,
+.oc-full-sec__audit-status {
+  border-bottom: none;
+}
+
+/* ── Resume Learning button ── */
+.oc-full-sec__resume-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+}
+
+.oc-full-sec__resume-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+}
+
+.oc-full-sec__resume-btn:active {
+  transform: translateY(0);
+}
+
+/* Mobile: compact card */
+@media (max-width: 600px) {
+  .oc-full-sec__card {
+    padding: 1.5rem 1.25rem;
+    border-radius: 16px;
+  }
+  .oc-full-sec__title {
+    font-size: 1.1rem;
+  }
+  .oc-full-sec__pulse-icon {
+    font-size: 2.75rem;
+  }
+  .oc-full-sec__resume-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER D — DYNAMIC WATERMARK OVERLAY
+   Rendered inside ProtectedContentContainer when
+   showWatermark={true} — e.g., document viewer, video player.
+   Covers the protected content with a diagonal repeating
+   text pattern (username + sessionId + timestamp).
+   pointer-events: none — never blocks clicks/scrolling.
+   ──────────────────────────────────────────────────────────── */
+.oc-watermark-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  overflow: hidden;
+  /* Prevent selection of watermark text */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.oc-watermark-grid {
+  position: absolute;
+  inset: -40%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  transform: rotate(-25deg);
+  width: 180%;
+}
+
+.oc-watermark-row {
+  display: flex;
+  gap: 2.5rem;
+  white-space: nowrap;
+}
+
+.oc-watermark-row span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(37, 99, 235, 0.18);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER E — PROTECTED CONTENT WRAPPER & BLUR SHIELD
+   ProtectedContentContainer renders these.
+   ──────────────────────────────────────────────────────────── */
+.oc-protected-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Protected content surface — no user selection */
+.oc-protected-surface {
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* iOS long-press callout */
+}
+
+/* Blurred state — when isBlurred = true */
+.oc-content-blurred {
+  filter: blur(18px) brightness(0.4);
+  pointer-events: none;
+  transition: filter 0.2s ease;
+}
+
+/* ── Window-blur / screen-capture protest shield ── */
+.oc-blur-shield {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: rgba(6, 13, 29, 0.92);
+  backdrop-filter: blur(20px) saturate(0.3);
+  -webkit-backdrop-filter: blur(20px) saturate(0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.oc-blur-shield-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Protest card inside blur shield */
+.oc-protest-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.oc-protest-icon-wrap {
+  margin-bottom: 0.75rem;
+}
+
+.oc-protest-icon-wrap .oc-pulse-icon,
+.oc-pulse-icon {
+  font-size: 2.75rem;
+  animation: oc-sec-pulse 1.6s ease-in-out infinite;
+  display: block;
+}
+
+.oc-protest-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+  border-radius: 9999px;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.oc-protest-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.oc-protest-desc {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.oc-protest-audit-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER F — INFORMATIONAL SECURITY TOAST
+   (GlobalSecurityGuard — login confirmation notice)
+   ──────────────────────────────────────────────────────────── */
+.oc-sec-info-toast {
+  position: fixed;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483646; /* just under the overlay */
+  background: rgba(6, 13, 29, 0.95);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: min(480px, calc(100vw - 2rem));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER G — SECURITY TOAST (useContentProtection warnings)
+   ──────────────────────────────────────────────────────────── */
+.oc-security-toast {
+  position: fixed;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  right: calc(1.25rem + env(safe-area-inset-right, 0px));
+  z-index: 2147483646;
+  background: rgba(6, 13, 29, 0.97);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  padding: 0.7rem 1.1rem;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  max-width: min(360px, calc(100vw - 2rem));
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: oc-toast-in 0.2s ease;
+}
+
+@keyframes oc-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER H — PRINT PROTECTION
+   ──────────────────────────────────────────────────────────── */
+
+/* Print-only replacement banner — hidden in normal view */
+.oc-print-blocker {
+  display: none;
+}
+
+/* When printing: hide entire page, show lock message only */
+@media print {
+  body > *:not(.oc-print-message-root) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Hide everything */
+  html, body {
+    background: #fff !important;
+  }
+
+  .oc-print-blocker {
+    display: flex !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: #fff !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 2147483647 !important;
+  }
+
+  .oc-print-message {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111;
+    text-align: center;
+    padding: 2rem;
+    border: 3px solid #111;
+    border-radius: 12px;
+  }
+
+  /* Hide the away guard during print (not needed there) */
+  .oc-away-guard,
+  .oc-full-security-screen {
+    display: none !important;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER I — VIDEO PLAYER HARDENING
+   Prevents iOS long-press callout and Android context menu
+   on video/image elements inside protected containers.
+   ──────────────────────────────────────────────────────────── */
+.oc-protected-wrapper video,
+.oc-protected-wrapper img,
+.oc-protected-surface video,
+.oc-protected-surface img {
+  -webkit-touch-callout: none;
+  pointer-events: auto; /* keep video controls working */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Disable iOS AirPlay / PiP badge on video */
+.oc-protected-wrapper video::-webkit-media-controls-panel {
+  -webkit-user-select: none;
+}
+
+/* ────────────────────────────────────────────────────────────
+   END SECURITY SYSTEM CSS
+   ──────────────────────────────────────────────────────────── */
