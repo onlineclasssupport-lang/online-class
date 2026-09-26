@@ -1145,7 +1145,7 @@ export default function ConceptDetailsPage() {
                   <h4 className="mb-0 text-white text-truncate" style={{ fontSize: "0.95rem" }} title={activeDocument.title}>
                     {activeDocument.title}
                   </h4>
-                  <small className="text-white-50 text-truncate d-block" style={{ fontSize: "0.72rem" }}>
+                  <small className="text-truncate d-block" style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.82)" }}>
                     🔒 Protected Study Viewer &bull; {concept.name} &bull; (Downloads Disabled)
                   </small>
                 </div>
@@ -1445,7 +1445,7 @@ export default function ConceptDetailsPage() {
                   <h4 className="mb-0 text-white text-truncate" style={{ fontSize: "0.95rem" }} title={activeVideoModal.title}>
                     {activeVideoModal.title}
                   </h4>
-                  <small className="text-white-50 text-truncate d-block" style={{ fontSize: "0.72rem" }}>
+                  <small className="text-truncate d-block" style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.82)" }}>
                     🔒 Protected Video Lecture &bull; {concept.name} &bull; (View Only)
                   </small>
                 </div>
