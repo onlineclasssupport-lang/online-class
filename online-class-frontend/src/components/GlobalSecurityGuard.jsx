@@ -44,6 +44,28 @@ export default function GlobalSecurityGuard({ children }) {
 
   const isHoveringIframeRef = useRef(false);
   const awayGuardRef = useRef(null);
+  const wasBackgroundedRef = useRef(false);
+
+  const isPaymentActive = useCallback(() => {
+    try {
+      if (typeof window !== "undefined" && window.__OC_PAYMENT_ACTIVE__) return true;
+      if (
+        typeof document !== "undefined" &&
+        document.querySelector('.razorpay-container, .razorpay-backdrop, [class*="razorpay"], iframe[src*="razorpay"]')
+      ) {
+        return true;
+      }
+      if (
+        typeof document !== "undefined" &&
+        document.activeElement &&
+        (document.activeElement.tagName === "IFRAME" ||
+          document.activeElement.closest?.('.razorpay-container, [class*="razorpay"]'))
+      ) {
+        return true;
+      }
+    } catch {}
+    return false;
+  }, []);
 
   const sessionId = getOrCreateSessionId();
   const username = user?.name || "Student User";
@@ -243,6 +265,20 @@ export default function GlobalSecurityGuard({ children }) {
             "stream_capture_canvas"
           );
           throw new DOMException("Canvas capture disabled.", "NotAllowedError");
+        };
+      } catch {}
+    }
+
+    if (typeof HTMLVideoElement !== "undefined" && HTMLVideoElement.prototype.requestPictureInPicture) {
+      try {
+        HTMLVideoElement.prototype.requestPictureInPicture = async function () {
+          activateFullSecurityScreen(
+            "SCREENSHOT & SCREEN RECORDING RESTRICTED",
+            "Picture-in-Picture Floating Window",
+            "⚠️ You cannot able to take screen short. Picture-in-Picture video mode is prohibited to prevent external screen recording.",
+            "screen_record_pip"
+          );
+          throw new DOMException("Picture-in-Picture mode is disabled.", "NotAllowedError");
         };
       } catch {}
     }
@@ -717,28 +753,19 @@ export default function GlobalSecurityGuard({ children }) {
     // Game Bar Recording (Win+Alt+R) activates, the OS consumes the keystroke
     // and causes a window blur. We correlate the rolling timestamps to lock down immediately!
     const handleWindowBlur = () => {
-      // Safety check: Never interfere with Razorpay or active payment popups/iframes
-      const isRazorpayActive = () => {
-        try {
-          if (document.querySelector('.razorpay-container, .razorpay-backdrop, [class*="razorpay"], iframe[src*="razorpay"]')) {
-            return true;
-          }
-          if (
-            document.activeElement &&
-            (document.activeElement.tagName === "IFRAME" ||
-              document.activeElement.closest?.('.razorpay-container, [class*="razorpay"]'))
-          ) {
-            return true;
-          }
-        } catch {}
-        return false;
-      };
-
-      if (isRazorpayActive() || isHoveringIframeRef.current) {
+      if (isPaymentActive() || isHoveringIframeRef.current) {
         metaDownRef.current = false;
         shiftDownRef.current = false;
         altDownRef.current = false;
         ctrlDownRef.current = false;
+        return;
+      }
+
+      // If document is already focusing an input or interactive control inside page, ignore blur
+      if (
+        document.activeElement &&
+        document.activeElement.matches?.("input, textarea, select, [contenteditable='true']")
+      ) {
         return;
       }
 
@@ -820,6 +847,25 @@ export default function GlobalSecurityGuard({ children }) {
         );
         return;
       }
+
+      // Case 5: Mobile Floating Screen Recorder / Quick Settings Blur
+      // On mobile devices, tapping a floating screen recorder button (AZ Recorder, XRecorder, Mobizen, Game Turbo)
+      // or opening the screen recording dialog causes window blur.
+      const isMobile =
+        typeof navigator !== "undefined" &&
+        (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+          ("ontouchstart" in window && window.innerWidth <= 1024));
+
+      if (isMobile) {
+        showAwayGuard();
+        activateFullSecurityScreen(
+          "SCREENSHOT & SCREEN RECORDING RESTRICTED",
+          "Screen Record / Floating Tool Click",
+          "⚠️ You cannot able to take screen short. Screen recording tools and capture overlays are prohibited.",
+          "mobile_screen_record_blur"
+        );
+        return;
+      }
     };
 
     const handleWindowFocus = () => {
@@ -833,10 +879,22 @@ export default function GlobalSecurityGuard({ children }) {
     const handleVisibilityChange = () => {
       clearClipboard();
       if (document.hidden || document.visibilityState === "hidden") {
+        wasBackgroundedRef.current = true;
         pauseProtectedMedia();
         showAwayGuard();
         logSecurityIncident("app_backgrounded", { trigger: "visibilitychange" });
       } else if (document.visibilityState === "visible" && !document.hidden) {
+        if (wasBackgroundedRef.current) {
+          wasBackgroundedRef.current = false;
+          if (!isPaymentActive()) {
+            activateFullSecurityScreen(
+              "SCREENSHOT & SCREEN RECORDING RESTRICTED",
+              "Screen Record / Background Return Detected",
+              "⚠️ You cannot able to take screen short. Screen recording and background capture of educational lectures are prohibited.",
+              "screen_record_background_return"
+            );
+          }
+        }
         hideAwayGuard();
       }
     };
@@ -845,6 +903,7 @@ export default function GlobalSecurityGuard({ children }) {
     // the OS freezing a backgrounded tab, Home button press, screen lock).
     // e.persisted === true indicates the page is entering / stored in bfcache (iOS Safari).
     const handlePageHide = (e) => {
+      wasBackgroundedRef.current = true;
       clearClipboard();
       pauseProtectedMedia();
       showAwayGuard();
@@ -857,6 +916,15 @@ export default function GlobalSecurityGuard({ children }) {
     // verify the page is actually foregrounded and visible before lifting the guard.
     const handlePageShow = () => {
       if (document.visibilityState === "visible" && !document.hidden) {
+        if (wasBackgroundedRef.current && !isPaymentActive()) {
+          wasBackgroundedRef.current = false;
+          activateFullSecurityScreen(
+            "SCREENSHOT & SCREEN RECORDING RESTRICTED",
+            "Screen Record / Background Return Detected",
+            "⚠️ You cannot able to take screen short. Screen recording and background capture of educational lectures are prohibited.",
+            "screen_record_background_return"
+          );
+        }
         hideAwayGuard();
       }
     };
@@ -1006,7 +1074,7 @@ export default function GlobalSecurityGuard({ children }) {
       window.removeEventListener("pointercancel", handlePointerUpOrCancel, optsPassv);
       if (infoToastTimerRef.current) clearTimeout(infoToastTimerRef.current);
     };
-  }, [activateFullSecurityScreen, clearClipboard, pauseProtectedMedia, logSecurityIncident, showAwayGuard, hideAwayGuard]);
+  }, [activateFullSecurityScreen, clearClipboard, pauseProtectedMedia, logSecurityIncident, showAwayGuard, hideAwayGuard, isPaymentActive]);
 
   // ─── LAYER 5: Background Clipboard Guard ───────────────────────────────────
   useEffect(() => {
