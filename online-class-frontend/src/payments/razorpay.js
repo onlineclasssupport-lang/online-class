@@ -36,6 +36,32 @@ export async function openRazorpayCheckout(orderData, { onSuccess, onDismiss, on
     return;
   }
 
+  // Flag payment as active to ensure security guards never interfere with Razorpay or UPI redirects
+  if (typeof window !== "undefined") {
+    window.__OC_PAYMENT_ACTIVE__ = true;
+  }
+
+  const handleSuccess = (response) => {
+    if (typeof window !== "undefined") {
+      window.__OC_PAYMENT_ACTIVE__ = false;
+    }
+    onSuccess?.(response);
+  };
+
+  const handleDismiss = () => {
+    if (typeof window !== "undefined") {
+      window.__OC_PAYMENT_ACTIVE__ = false;
+    }
+    onDismiss?.();
+  };
+
+  const handleError = (err) => {
+    if (typeof window !== "undefined") {
+      window.__OC_PAYMENT_ACTIVE__ = false;
+    }
+    onError?.(err);
+  };
+
   const rzp = new window.Razorpay({
     key: orderData.key,
     amount: orderData.amount,
@@ -45,14 +71,14 @@ export async function openRazorpayCheckout(orderData, { onSuccess, onDismiss, on
     order_id: orderData.order_id,
     prefill: orderData.prefill || {},
     theme: { color: "#2554e0" },
-    handler: (response) => onSuccess?.(response),
+    handler: handleSuccess,
     modal: {
-      ondismiss: () => onDismiss?.(),
+      ondismiss: handleDismiss,
     },
   });
 
   rzp.on("payment.failed", (response) => {
-    onError?.(new Error(response?.error?.description || "Payment failed."));
+    handleError(new Error(response?.error?.description || "Payment failed."));
   });
 
   rzp.open();
