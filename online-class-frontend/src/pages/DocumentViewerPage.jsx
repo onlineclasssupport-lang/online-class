@@ -23,6 +23,14 @@ import { useSiteSettings } from "../context/SiteSettingsContext.jsx";
 // page instead of popping up a modal on the current one.
 // ============================================================================
 
+// On phones, 100vh includes the area hidden behind the browser's address bar, which pushes the
+// bottom of a full-window viewer off-screen. 100dvh is the actually-visible height; browsers
+// that do not know it keep using vh exactly as before.
+const VH_UNIT =
+  typeof CSS !== "undefined" && typeof CSS.supports === "function" && CSS.supports("height", "100dvh")
+    ? "dvh"
+    : "vh";
+
 export default function DocumentViewerPage() {
   const { identifier, docId } = useParams();
   const navigate = useNavigate();
@@ -36,8 +44,40 @@ export default function DocumentViewerPage() {
   const [error, setError] = useState(null);
 
   // Same viewer controls the modal used to offer.
-  const [docViewSize, setDocViewSize] = useState("medium"); // "medium" | "expanded"
+  // "View Online" now opens the document using the entire window right away
+  // ("expanded" = the existing "Entire Website" mode). The Medium / Entire Website
+  // switch in the header still works exactly as before.
+  const [docViewSize, setDocViewSize] = useState("expanded"); // "medium" | "expanded"
   const [docZoom, setDocZoom] = useState(1); // 0.5 to 2.5
+
+  // The full-window viewer sits directly under the site navbar. The CSS used to assume a
+  // fixed 68px navbar, which leaves a gap (or hides part of the viewer) when the real navbar
+  // is a different height, e.g. on phones. Measure it instead, keep it up to date, and remove
+  // the value again when leaving this page so no other screen is affected.
+  useEffect(() => {
+    const root = document.documentElement;
+    const navbar = document.querySelector(".oc-navbar");
+    if (!navbar) return undefined;
+
+    const applyHeight = () => {
+      const height = Math.round(navbar.getBoundingClientRect().height);
+      if (height > 0) root.style.setProperty("--oc-navbar-height", `${height}px`);
+    };
+
+    applyHeight();
+    window.addEventListener("resize", applyHeight);
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(applyHeight);
+      resizeObserver.observe(navbar);
+    }
+
+    return () => {
+      window.removeEventListener("resize", applyHeight);
+      if (resizeObserver) resizeObserver.disconnect();
+      root.style.removeProperty("--oc-navbar-height");
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -430,7 +470,7 @@ export default function DocumentViewerPage() {
             <div
               className="w-100 h-100 p-3"
               style={{
-                minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh",
+                minHeight: docViewSize === "expanded" ? `calc(100${VH_UNIT} - 180px)` : "72vh",
                 background: "#0f172a",
                 overflow: "auto",
               }}
@@ -439,7 +479,7 @@ export default function DocumentViewerPage() {
               <div
                 className="w-100 h-100 rounded-3 overflow-hidden bg-white"
                 style={{
-                  minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "68vh",
+                  minHeight: docViewSize === "expanded" ? `calc(100${VH_UNIT} - 180px)` : "68vh",
                 }}
               >
                 <iframe
@@ -447,7 +487,7 @@ export default function DocumentViewerPage() {
                   title={activeDocument.title || "Text document"}
                   className="w-100 h-100 border-0"
                   style={{
-                    minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "68vh",
+                    minHeight: docViewSize === "expanded" ? `calc(100${VH_UNIT} - 180px)` : "68vh",
                     background: "#fff",
                   }}
                   loading="eager"
@@ -460,7 +500,7 @@ export default function DocumentViewerPage() {
             <div
               className="w-100 h-100 p-3"
               style={{
-                minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh",
+                minHeight: docViewSize === "expanded" ? `calc(100${VH_UNIT} - 180px)` : "72vh",
                 overflow: "auto",
                 display: "flex",
                 alignItems: docZoom <= 1 ? "center" : "flex-start",
@@ -480,7 +520,7 @@ export default function DocumentViewerPage() {
                   style={{
                     width: docZoom !== 1 ? `${Math.round(docZoom * 100)}%` : "100%",
                     maxWidth: docZoom <= 1 ? "100%" : "none",
-                    maxHeight: docZoom <= 1 ? (docViewSize === "expanded" ? "calc(100vh - 200px)" : "70vh") : "none",
+                    maxHeight: docZoom <= 1 ? (docViewSize === "expanded" ? `calc(100${VH_UNIT} - 200px)` : "70vh") : "none",
                     objectFit: "contain",
                     userSelect: "none",
                     WebkitUserSelect: "none",
@@ -496,14 +536,14 @@ export default function DocumentViewerPage() {
             <div
               className="w-100 h-100 position-relative"
               style={{
-                minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh",
+                minHeight: docViewSize === "expanded" ? `calc(100${VH_UNIT} - 180px)` : "72vh",
                 overflow: "auto",
               }}
             >
               <div
                 style={{
                   width: `${Math.round(docZoom * 100)}%`,
-                  minHeight: docViewSize === "expanded" ? (docZoom > 1 ? `calc(${Math.round(docZoom * 100)}vh - 180px)` : "calc(100vh - 180px)") : (docZoom > 1 ? `${Math.round(docZoom * 72)}vh` : "72vh"),
+                  minHeight: docViewSize === "expanded" ? (docZoom > 1 ? `calc(${Math.round(docZoom * 100)}${VH_UNIT} - 180px)` : `calc(100${VH_UNIT} - 180px)`) : (docZoom > 1 ? `${Math.round(docZoom * 72)}vh` : "72vh"),
                   height: docZoom > 1 ? `${Math.round(docZoom * 100)}%` : "100%",
                   margin: "0 auto",
                   transition: "width 0.2s ease-out, min-height 0.2s ease-out",
@@ -517,7 +557,7 @@ export default function DocumentViewerPage() {
                   style={{
                     width: "100%",
                     height: "100%",
-                    minHeight: docViewSize === "expanded" ? (docZoom > 1 ? `calc(${Math.round(docZoom * 100)}vh - 180px)` : "calc(100vh - 180px)") : (docZoom > 1 ? `${Math.round(docZoom * 72)}vh` : "72vh"),
+                    minHeight: docViewSize === "expanded" ? (docZoom > 1 ? `calc(${Math.round(docZoom * 100)}${VH_UNIT} - 180px)` : `calc(100${VH_UNIT} - 180px)`) : (docZoom > 1 ? `${Math.round(docZoom * 72)}vh` : "72vh"),
                     backgroundColor: "#1e293b",
                     display: "block",
                   }}
@@ -525,8 +565,8 @@ export default function DocumentViewerPage() {
               </div>
             </div>
           ) : isVideoDoc(activeDocument) ? (
-            <div className="w-100 h-100 p-2 d-flex align-items-center justify-content-center" style={{ minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh" }}>
-              <div className="w-100 h-100 rounded-3 overflow-hidden bg-black shadow position-relative d-flex align-items-center justify-content-center" style={{ maxHeight: docViewSize === "expanded" ? "calc(96vh - 150px)" : "68vh" }}>
+            <div className="w-100 h-100 p-2 d-flex align-items-center justify-content-center" style={{ minHeight: docViewSize === "expanded" ? `calc(100${VH_UNIT} - 180px)` : "72vh" }}>
+              <div className="w-100 h-100 rounded-3 overflow-hidden bg-black shadow position-relative d-flex align-items-center justify-content-center" style={{ maxHeight: docViewSize === "expanded" ? `calc(96${VH_UNIT} - 150px)` : "68vh" }}>
                 <video
                   controls
                   autoPlay
@@ -537,7 +577,7 @@ export default function DocumentViewerPage() {
                   onContextMenu={(e) => e.preventDefault()}
                   src={activeDocument.file_url || activeDocument.file_path}
                   className="w-100 h-100"
-                  style={{ maxHeight: docViewSize === "expanded" ? "calc(96vh - 150px)" : "68vh", objectFit: "contain" }}
+                  style={{ maxHeight: docViewSize === "expanded" ? `calc(96${VH_UNIT} - 150px)` : "68vh", objectFit: "contain" }}
                 >
                   <source src={activeDocument.file_url || activeDocument.file_path} />
                   Your browser does not support video playback.
@@ -545,7 +585,7 @@ export default function DocumentViewerPage() {
               </div>
             </div>
           ) : (
-            <div className="d-flex flex-column align-items-center justify-content-center p-5 text-center text-white" style={{ minHeight: docViewSize === "expanded" ? "calc(100vh - 180px)" : "72vh" }}>
+            <div className="d-flex flex-column align-items-center justify-content-center p-5 text-center text-white" style={{ minHeight: docViewSize === "expanded" ? `calc(100${VH_UNIT} - 180px)` : "72vh" }}>
               <div className="p-4 rounded-circle bg-dark-subtle mb-3" style={{ width: 84, height: 84, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <i className={`bi ${getDocIcon(activeDocument.file_type)}`} style={{ fontSize: "2.8rem" }} />
               </div>
