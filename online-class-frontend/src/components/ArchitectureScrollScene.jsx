@@ -96,14 +96,26 @@ const ARCH_LAYERS = [
   },
 ];
 
+// Subtle camera tilt tracking scroll progress (2deg to 6deg).
+const getCameraPitch = (progress) => 5 - (progress - 0.5) * 3;
+
 export default function ArchitectureScrollScene() {
   const trackRef = useRef(null);
-  const [progress, setProgress] = useState(0);
+  const deckRef = useRef(null);
   const [activeTierIdx, setActiveTierIdx] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const isButtonNavRef = useRef(false);
   const buttonNavTimerRef = useRef(null);
   const lastProgressRef = useRef(0);
+
+  // Scroll progress lives in a ref and is written straight to the deck's transform, so
+  // scrolling no longer re-renders the four large 3D cards on every frame. React state
+  // (activeTierIdx) only changes when the active tier actually changes.
+  const applyCameraPitch = useCallback((progress) => {
+    if (deckRef.current) {
+      deckRef.current.style.transform = `rotateX(${getCameraPitch(progress)}deg)`;
+    }
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -117,11 +129,13 @@ export default function ArchitectureScrollScene() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReducedMotion) {
-      setProgress(0);
+      lastProgressRef.current = 0;
+      applyCameraPitch(0);
       return undefined;
     }
 
     let rafId = null;
+    let listening = false;
 
     const computeProgress = () => {
       rafId = null;
@@ -142,7 +156,7 @@ export default function ArchitectureScrollScene() {
 
       if (Math.abs(p - lastProgressRef.current) > 0.0008) {
         lastProgressRef.current = p;
-        setProgress(p);
+        applyCameraPitch(p);
 
         // While scrolling naturally (not during an instant button click), update active tier
         if (!isButtonNavRef.current) {
@@ -150,6 +164,7 @@ export default function ArchitectureScrollScene() {
             ARCH_LAYERS.length - 1,
             Math.max(0, Math.floor(p * ARCH_LAYERS.length))
           );
+          // Same-value updates are ignored by React, so this only re-renders on a tier change.
           setActiveTierIdx(scrollTier);
         }
       }
@@ -161,26 +176,44 @@ export default function ArchitectureScrollScene() {
       }
     };
 
-    computeProgress();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", () => {
+    const onResize = () => {
       checkMobile();
       onScroll();
-    });
+    };
+
+    const startListening = () => {
+      if (listening) return;
+      listening = true;
+      window.addEventListener("scroll", onScroll, { passive: true });
+    };
+
+    const stopListening = () => {
+      if (!listening) return;
+      listening = false;
+      window.removeEventListener("scroll", onScroll);
+    };
+
+    // Follow the scroll for the section's whole life (passive, rAF-throttled, no React work per
+    // frame) so the active tier and camera tilt are right even after a big jump such as an
+    // anchor link or Page End.
+    computeProgress();
+    startListening();
+
+    window.addEventListener("resize", onResize);
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      stopListening();
+      window.removeEventListener("resize", onResize);
       if (rafId !== null) cancelAnimationFrame(rafId);
       if (buttonNavTimerRef.current) clearTimeout(buttonNavTimerRef.current);
     };
-  }, []);
+  }, [applyCameraPitch]);
 
   const activeIndex = activeTierIdx;
   const activeTier = ARCH_LAYERS[activeIndex];
 
-  // Subtle camera tilt tracking progress (2deg to 6deg)
-  const cameraPitch = 5 - (progress - 0.5) * 3;
+  // Initial / latest camera tilt for React-driven renders (scroll updates bypass React).
+  const cameraPitch = getCameraPitch(lastProgressRef.current);
 
   // Smoothly jump to a specific tier within the pinned track (seamless looping)
   const goToTier = useCallback((targetIndex) => {
@@ -190,7 +223,7 @@ export default function ArchitectureScrollScene() {
     const targetProgresses = [0.04, 0.32, 0.62, 0.92];
     const targetP = targetProgresses[nextIdx];
     lastProgressRef.current = targetP;
-    setProgress(targetP);
+    applyCameraPitch(targetP);
 
     const track = trackRef.current;
     if (!track) return;
@@ -226,7 +259,7 @@ export default function ArchitectureScrollScene() {
         rootHtml.style.scrollBehavior = prevBehavior;
       });
     }
-  }, []);
+  }, [applyCameraPitch]);
 
   const handlePrev = useCallback((e) => {
     if (e) {
@@ -343,6 +376,7 @@ export default function ArchitectureScrollScene() {
 
               {/* 3D Stage Container */}
               <div
+                ref={deckRef}
                 className="oc-spatial-deck"
                 style={{
                   transform: `rotateX(${cameraPitch}deg)`,
