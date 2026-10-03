@@ -637,6 +637,8 @@ export default function SectionPage({ section }) {
                       <img
                         src={item.file_url}
                         alt={item.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-100 h-100"
                         style={{
                           maxHeight: 320,
