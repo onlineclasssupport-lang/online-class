@@ -11,11 +11,21 @@
     <title>Online Class</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts load without blocking first paint (display=swap keeps text visible meanwhile). -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
-    <script src="/career-pathway-pdf-compat.js"></script>
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+    <!-- defer: no longer blocks HTML parsing, yet still runs before the app's module script (document order). -->
+    <script defer src="/career-pathway-pdf-compat.js"></script>
   </head>
   <body>
     <div id="root"></div>
