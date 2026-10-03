@@ -1498,6 +1498,8 @@ export default function CareerPathwaysSection({ initialSlug, showHeaderBack = fa
                                   <img
                                     src={vid.thumbnail_url}
                                     alt={vid.title}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-100 h-100 object-fit-cover"
                                   />
                                 ) : (
