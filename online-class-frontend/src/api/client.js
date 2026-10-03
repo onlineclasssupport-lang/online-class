@@ -27,6 +27,72 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ─── Request sharing for public, read-only settings endpoints ─────────────────
+// The provider, the app shell and individual pages all ask for the same public settings
+// at nearly the same moment (and again when moving between pages). Identical concurrent
+// requests now share one network call, and the answer is reused for a few seconds.
+// Any write (POST/PUT/PATCH/DELETE) clears this instantly, so admin edits show up at once.
+const SHARED_GET_PATHS = new Set(["/site-settings", "/welcome-screen", "/custom-sections"]);
+const SHARED_GET_TTL_MS = 15000;
+const sharedGetInflight = new Map();
+const sharedGetRecent = new Map();
+
+const cloneData = (value) => {
+  try {
+    return typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value));
+  } catch {
+    return value;
+  }
+};
+
+const clearSharedGets = () => {
+  sharedGetInflight.clear();
+  sharedGetRecent.clear();
+};
+
+const originalGet = api.get.bind(api);
+api.get = function sharedGet(url, config) {
+  if (typeof url !== "string" || config?.signal || config?.responseType || config?.onDownloadProgress) {
+    return originalGet(url, config);
+  }
+  const [path, query = ""] = url.split("?");
+  if (!SHARED_GET_PATHS.has(path)) return originalGet(url, config);
+
+  const key = [
+    path,
+    query,
+    JSON.stringify(config?.params || {}),
+    localStorage.getItem("oc_user_token") || "",
+  ].join("|");
+
+  const recent = sharedGetRecent.get(key);
+  if (recent && Date.now() - recent.at < SHARED_GET_TTL_MS) {
+    return Promise.resolve({ ...recent.res, data: cloneData(recent.res.data) });
+  }
+
+  let pending = sharedGetInflight.get(key);
+  if (!pending) {
+    pending = originalGet(url, config)
+      .then((res) => {
+        sharedGetRecent.set(key, { at: Date.now(), res });
+        return res;
+      })
+      .finally(() => {
+        sharedGetInflight.delete(key);
+      });
+    sharedGetInflight.set(key, pending);
+  }
+  return pending.then((res) => ({ ...res, data: cloneData(res.data) }));
+};
+
+["post", "put", "patch", "delete"].forEach((method) => {
+  const original = api[method].bind(api);
+  api[method] = function writeAndInvalidate(...args) {
+    clearSharedGets();
+    return original(...args).finally(clearSharedGets);
+  };
+});
+
 export default api;
 
 export const SECTIONS = {
