@@ -358,7 +358,7 @@ export default function HomePage() {
                     &ldquo;{t.comment}&rdquo;
                   </p>
                   <div className="d-flex align-items-center gap-3 pt-3 border-top mt-auto">
-                    <img src={t.avatar} alt={t.name} className="oc-testi-avatar" />
+                    <img src={t.avatar} alt={t.name} className="oc-testi-avatar" loading="lazy" decoding="async" />
                     <div>
                       <h4 className="h6 fw-bold mb-0 text-dark">{t.name}</h4>
                       <small className="text-muted">{t.role}</small>
