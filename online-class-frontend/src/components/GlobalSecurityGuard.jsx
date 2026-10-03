@@ -328,6 +328,10 @@ export default function GlobalSecurityGuard({ children }) {
       "enable-copy",
     ];
 
+    // One combined selector instead of 11 separate full-document scans.
+    const markerSelector = (marker) => `[id*="${marker}" i], [class*="${marker}" i], [src*="${marker}" i]`;
+    const COMBINED_MARKER_SELECTOR = EXTENSION_MARKERS.map(markerSelector).join(", ");
+
     const hardenAndScan = () => {
       document.querySelectorAll("video").forEach((v) => {
         if (v.getAttribute("controlsList") !== "nodownload noplaybackrate noremoteplayback") {
@@ -335,35 +339,51 @@ export default function GlobalSecurityGuard({ children }) {
         }
         v.disablePictureInPicture = true;
         v.disableRemotePlayback = true;
-        v.oncontextmenu = (e) => {
-          e.preventDefault();
-          return false;
-        };
+        if (!v.oncontextmenu) {
+          v.oncontextmenu = (e) => {
+            e.preventDefault();
+            return false;
+          };
+        }
       });
       document.querySelectorAll("img").forEach((img) => {
+        // Already hardened on an earlier pass — nothing more to do for this image.
+        if (img.oncontextmenu) return;
         img.setAttribute("draggable", "false");
         img.oncontextmenu = (e) => {
           e.preventDefault();
           return false;
         };
       });
-      EXTENSION_MARKERS.forEach((marker) => {
-        document
-          .querySelectorAll(`[id*="${marker}" i], [class*="${marker}" i], [src*="${marker}" i]`)
-          .forEach((el) => {
-            if (el.closest(".oc-app-shell") || el.closest(".oc-full-security-screen")) return;
-            try {
-              el.remove();
-              logSecurityIncident("extension_marker_neutralized", { marker });
-            } catch {}
-          });
+      document.querySelectorAll(COMBINED_MARKER_SELECTOR).forEach((el) => {
+        if (el.closest(".oc-app-shell") || el.closest(".oc-full-security-screen")) return;
+        try {
+          const marker = EXTENSION_MARKERS.find((m) => el.matches(markerSelector(m)));
+          el.remove();
+          logSecurityIncident("extension_marker_neutralized", { marker });
+        } catch {}
       });
     };
 
+    // Scan immediately on mount, then re-scan whenever new nodes appear. Bursts of DOM
+    // changes (every React render, scroll-driven updates, route changes) are merged into a
+    // single scan per frame instead of running the full scan synchronously for each one.
+    // Removed nodes cannot introduce new media or extension elements, so they are ignored.
     hardenAndScan();
-    const observer = new MutationObserver(hardenAndScan);
+    let scanFrame = null;
+    const observer = new MutationObserver((mutations) => {
+      if (scanFrame !== null) return;
+      if (!mutations.some((m) => m.addedNodes && m.addedNodes.length > 0)) return;
+      scanFrame = requestAnimationFrame(() => {
+        scanFrame = null;
+        hardenAndScan();
+      });
+    });
     observer.observe(document.documentElement, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (scanFrame !== null) cancelAnimationFrame(scanFrame);
+    };
   }, [logSecurityIncident]);
 
   // ─── LAYER 3: Pre-Emptive Key Interception & Correlation Engine ───────────
@@ -995,16 +1015,15 @@ export default function GlobalSecurityGuard({ children }) {
       );
     };
 
+    // NOTE: registered as a *passive* listener (see below). A non-passive window-level
+    // touchstart/touchmove listener forces the browser to wait for this JavaScript before it
+    // can scroll on every single touch, which makes scrolling feel laggy on phones. The lock
+    // above fires immediately either way, so protection is unchanged; preventDefault() on a
+    // 3-finger touch never stopped the OS screenshot gesture anyway.
     const handleTouchStartOrMove = (e) => {
       const touchCount = e.touches?.length || e.targetTouches?.length || 0;
       if (touchCount >= 3) {
         triggerMultiTouchLock("3-Finger Screenshot Gesture Detected");
-        try {
-          if (e.cancelable) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        } catch {}
       }
     };
 
@@ -1042,8 +1061,8 @@ export default function GlobalSecurityGuard({ children }) {
     window.addEventListener("oc:app-lifecycle", handleAppLifecycleCustom, optsPassv);
     window.addEventListener("pointerover", handlePointerOver, optsPassv);
     window.addEventListener("pointerout", handlePointerOut, optsPassv);
-    window.addEventListener("touchstart", handleTouchStartOrMove, opts);
-    window.addEventListener("touchmove", handleTouchStartOrMove, opts);
+    window.addEventListener("touchstart", handleTouchStartOrMove, optsPassv);
+    window.addEventListener("touchmove", handleTouchStartOrMove, optsPassv);
     window.addEventListener("pointerdown", handlePointerDown, optsPassv);
     window.addEventListener("pointerup", handlePointerUpOrCancel, optsPassv);
     window.addEventListener("pointercancel", handlePointerUpOrCancel, optsPassv);
@@ -1067,8 +1086,8 @@ export default function GlobalSecurityGuard({ children }) {
       window.removeEventListener("oc:app-lifecycle", handleAppLifecycleCustom, optsPassv);
       window.removeEventListener("pointerover", handlePointerOver, optsPassv);
       window.removeEventListener("pointerout", handlePointerOut, optsPassv);
-      window.removeEventListener("touchstart", handleTouchStartOrMove, opts);
-      window.removeEventListener("touchmove", handleTouchStartOrMove, opts);
+      window.removeEventListener("touchstart", handleTouchStartOrMove, optsPassv);
+      window.removeEventListener("touchmove", handleTouchStartOrMove, optsPassv);
       window.removeEventListener("pointerdown", handlePointerDown, optsPassv);
       window.removeEventListener("pointerup", handlePointerUpOrCancel, optsPassv);
       window.removeEventListener("pointercancel", handlePointerUpOrCancel, optsPassv);
