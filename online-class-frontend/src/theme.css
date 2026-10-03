@@ -7143,3 +7143,26 @@ html.oc-screen-lock-active .oc-full-security-screen {
 .oc-3d-edu-section[data-oc-offscreen] .oc-3d-core-ring-b {
   animation-play-state: paused;
 }
+
+/* ============================================================
+   DOCUMENT VIEWER — true visible-window height on phones
+   100vh counts the area behind a mobile browser's address bar, which pushes the
+   bottom of the full-window viewer (its footer) off-screen. 100dvh is the visible
+   height. Browsers without dvh support ignore this block and keep the rules above.
+   ============================================================ */
+@supports (height: 100dvh) {
+  .oc-doc-viewer-modal-backdrop {
+    height: calc(100dvh - var(--oc-navbar-height, 68px));
+  }
+  .oc-doc-viewer-modal-backdrop--expanded {
+    height: calc(100dvh - var(--oc-navbar-height, 68px)) !important;
+  }
+  .oc-doc-viewer-modal--expanded {
+    height: calc(100dvh - var(--oc-navbar-height, 68px)) !important;
+    max-height: calc(100dvh - var(--oc-navbar-height, 68px)) !important;
+  }
+  .oc-doc-viewer-body--expanded {
+    height: calc(100dvh - var(--oc-navbar-height, 68px) - 105px) !important;
+    max-height: calc(100dvh - var(--oc-navbar-height, 68px) - 105px) !important;
+  }
+}
