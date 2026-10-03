@@ -7120,3 +7120,26 @@ html.oc-screen-lock-active .oc-full-security-screen {
 /* ────────────────────────────────────────────────────────────
    END SECURITY SYSTEM CSS
    ──────────────────────────────────────────────────────────── */
+
+/* ============================================================
+   PERFORMANCE — off-screen scroll sections
+   ScrollDepthSection / EducationScrollScene mark themselves with
+   data-oc-offscreen while far outside the viewport. Purely decorative
+   infinite animations are paused and the 3D compositing hint is released
+   so scrolling elsewhere stays smooth. Nothing changes on-screen.
+   ============================================================ */
+.oc-scroll-depth-section[data-oc-offscreen] .oc-depth-orb,
+.oc-scroll-depth-section[data-oc-offscreen] .oc-depth-shard {
+  animation-play-state: paused;
+}
+
+.oc-scroll-depth-section[data-oc-offscreen] > .oc-scroll-depth-stage {
+  will-change: auto;
+}
+
+.oc-3d-edu-section[data-oc-offscreen] .oc-3d-edu-stars span,
+.oc-3d-edu-section[data-oc-offscreen] .oc-3d-scene-halo-inner,
+.oc-3d-edu-section[data-oc-offscreen] .oc-3d-core-ring-a,
+.oc-3d-edu-section[data-oc-offscreen] .oc-3d-core-ring-b {
+  animation-play-state: paused;
+}
