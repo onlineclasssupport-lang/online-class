@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { observeNearViewport } from "../utils/viewportVisibility.js";
 
 /**
  * EducationScrollScene
@@ -25,8 +26,47 @@ const EDU_ORBIT_ITEMS = [
   { icon: "bi-award-fill", label: "Achieve", color: "#f472b6" },
 ];
 
+const ORBIT_RADIUS = 222;
+
+// Pure helpers so the very same maths drives both the first render and the
+// per-frame DOM updates below (which bypass React for smooth scrolling).
+function getStageTransform(progress) {
+  const stageTiltX = (progress - 0.5) * -18;
+  const stageTiltY = (progress - 0.5) * 30;
+  const sceneLift = Math.sin(progress * Math.PI) * 18;
+  return `translateY(${-sceneLift}px) rotateX(${stageTiltX}deg) rotateY(${stageTiltY}deg)`;
+}
+
+function getCoreTransform(progress) {
+  return `translateZ(10px) rotateY(${progress * 420}deg)`;
+}
+
+function getCardMotion(idx, progress) {
+  const baseAngle = (idx / EDU_ORBIT_ITEMS.length) * 360;
+  const angle = baseAngle + progress * 420;
+  const rad = (angle * Math.PI) / 180;
+  const radius = ORBIT_RADIUS;
+  const x = Math.sin(rad) * radius;
+  const z = Math.cos(rad) * radius;
+  const depthRatio = (z + radius) / (radius * 2); // 0 (far) -> 1 (near)
+  const scale = 0.72 + depthRatio * 0.5;
+  const opacity = 0.32 + depthRatio * 0.68;
+  const bob = Math.cos(rad * 2 + idx) * 16;
+  return {
+    transform: `translate3d(${x}px, ${bob}px, ${z}px) rotateY(${-angle}deg) scale(${scale})`,
+    opacity,
+    zIndex: Math.round(z + radius),
+  };
+}
+
 export default function EducationScrollScene() {
   const sectionRef = useRef(null);
+  const stageRef = useRef(null);
+  const coreRef = useRef(null);
+  const meterRef = useRef(null);
+  const cardRefs = useRef([]);
+  // Only used for the first render and for reduced-motion users; scrolling itself
+  // never touches React state any more.
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -42,6 +82,20 @@ export default function EducationScrollScene() {
 
     let rafId = null;
     let lastProgress = -1;
+    let listening = false;
+
+    const applyProgress = (p) => {
+      if (stageRef.current) stageRef.current.style.transform = getStageTransform(p);
+      if (coreRef.current) coreRef.current.style.transform = getCoreTransform(p);
+      if (meterRef.current) meterRef.current.style.setProperty("--scroll-progress", String(p));
+      cardRefs.current.forEach((card, idx) => {
+        if (!card) return;
+        const motion = getCardMotion(idx, p);
+        card.style.transform = motion.transform;
+        card.style.opacity = String(motion.opacity);
+        card.style.zIndex = String(motion.zIndex);
+      });
+    };
 
     const computeProgress = () => {
       rafId = null;
@@ -54,11 +108,11 @@ export default function EducationScrollScene() {
       let p = total > 0 ? traveled / total : 0;
       if (p < 0) p = 0;
       if (p > 1) p = 1;
-      // Avoid rendering for imperceptibly small scroll changes while keeping
+      // Avoid updating for imperceptibly small scroll changes while keeping
       // the movement closely tied to the reader's position on the page.
       if (Math.abs(p - lastProgress) > 0.001) {
         lastProgress = p;
-        setProgress(p);
+        applyProgress(p);
       }
     };
 
@@ -67,21 +121,44 @@ export default function EducationScrollScene() {
       rafId = requestAnimationFrame(computeProgress);
     };
 
-    computeProgress();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    const startListening = () => {
+      if (listening) return;
+      listening = true;
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+    };
 
-    return () => {
+    const stopListening = () => {
+      if (!listening) return;
+      listening = false;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+    };
+
+    // The scroll listener stays attached for the section's whole life (passive, rAF-throttled,
+    // and it only touches the DOM when the value really changes), so the scene is at the right
+    // pose even after a big jump such as an anchor link or Page End.
+    computeProgress();
+    startListening();
+
+    // The viewport observer is only used to pause the decorative twinkle / halo animations
+    // while the section is far off-screen.
+    const stopObserving = observeNearViewport(sectionRef.current, (visible) => {
+      if (!sectionRef.current) return;
+      if (visible) {
+        delete sectionRef.current.dataset.ocOffscreen;
+        computeProgress();
+      } else {
+        sectionRef.current.dataset.ocOffscreen = "true";
+      }
+    });
+
+    return () => {
+      stopObserving();
+      stopListening();
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, []);
-
-  const stageTiltX = (progress - 0.5) * -18;
-  const stageTiltY = (progress - 0.5) * 30;
-  const coreSpin = progress * 420;
-  const sceneLift = Math.sin(progress * Math.PI) * 18;
 
   return (
     <section
@@ -114,6 +191,7 @@ export default function EducationScrollScene() {
           <div className="oc-3d-scene-halo oc-3d-scene-halo-outer" />
           <div className="oc-3d-scene-halo oc-3d-scene-halo-inner" />
           <div
+            ref={meterRef}
             className="oc-3d-scroll-meter"
             style={{ "--scroll-progress": progress }}
             aria-hidden="true"
@@ -121,34 +199,29 @@ export default function EducationScrollScene() {
             <span />
           </div>
           <div
+            ref={stageRef}
             className="oc-3d-stage"
-            style={{ transform: `translateY(${-sceneLift}px) rotateX(${stageTiltX}deg) rotateY(${stageTiltY}deg)` }}
+            style={{ transform: getStageTransform(progress) }}
           >
             <div className="oc-3d-orbit oc-3d-orbit-one" />
             <div className="oc-3d-orbit oc-3d-orbit-two" />
             <div className="oc-3d-orbit oc-3d-orbit-three" />
             {EDU_ORBIT_ITEMS.map((item, idx) => {
-              const baseAngle = (idx / EDU_ORBIT_ITEMS.length) * 360;
-              const angle = baseAngle + progress * 420;
-              const rad = (angle * Math.PI) / 180;
-              const radius = 222;
-              const x = Math.sin(rad) * radius;
-              const z = Math.cos(rad) * radius;
-              const depthRatio = (z + radius) / (radius * 2); // 0 (far) -> 1 (near)
-              const scale = 0.72 + depthRatio * 0.5;
-              const opacity = 0.32 + depthRatio * 0.68;
-              const bob = Math.cos(rad * 2 + idx) * 16;
+              const motion = getCardMotion(idx, progress);
 
               return (
                 <div
                   key={item.icon}
+                  ref={(node) => {
+                    cardRefs.current[idx] = node;
+                  }}
                   className="oc-3d-icon-card"
                   style={{
-                    transform: `translate3d(${x}px, ${bob}px, ${z}px) rotateY(${-angle}deg) scale(${scale})`,
-                    opacity,
+                    transform: motion.transform,
+                    opacity: motion.opacity,
                     borderColor: item.color,
                     boxShadow: `0 0 30px ${item.color}4d`,
-                    zIndex: Math.round(z + radius),
+                    zIndex: motion.zIndex,
                   }}
                 >
                   <i className={`bi ${item.icon}`} style={{ color: item.color }} />
@@ -158,8 +231,9 @@ export default function EducationScrollScene() {
             })}
 
             <div
+              ref={coreRef}
               className="oc-3d-center-core"
-              style={{ transform: `translateZ(10px) rotateY(${coreSpin}deg)` }}
+              style={{ transform: getCoreTransform(progress) }}
             >
               <span className="oc-3d-core-ring oc-3d-core-ring-a" />
               <span className="oc-3d-core-ring oc-3d-core-ring-b" />
