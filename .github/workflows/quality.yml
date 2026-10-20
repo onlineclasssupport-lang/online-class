@@ -49,6 +49,31 @@ jobs:
 
   laravel-checks:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: online_class_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d online_class_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: online_class_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: disable
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: sync
     defaults:
       run:
         working-directory: laravel-app
@@ -64,6 +89,7 @@ jobs:
       - run: cp .env.example .env
       - run: php artisan key:generate --force
       - run: php artisan config:cache
+      - run: php artisan migrate:fresh --force
       - run: vendor/bin/phpunit
       - name: Print Laravel log when tests fail
         if: failure()
