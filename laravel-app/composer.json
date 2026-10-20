@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.2",
         "ext-pdo_mysql": "*",
+        "ext-pdo_pgsql": "*",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.2",

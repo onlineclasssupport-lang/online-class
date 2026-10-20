@@ -56,6 +56,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Read via config() so this remains available after `artisan config:cache`.
+    'railway_public_domain' => env('RAILWAY_PUBLIC_DOMAIN', ''),
+
     'asset_url' => env('ASSET_URL', '/'),
 
     /*

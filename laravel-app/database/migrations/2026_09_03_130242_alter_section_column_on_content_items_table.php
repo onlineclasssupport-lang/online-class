@@ -1,25 +1,42 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * MySQL uses a native ENUM in the initial migration. Laravel represents
+     * enums on PostgreSQL as VARCHAR plus a generated CHECK constraint. The
+     * later app requirements allow new section keys, so remove that check on
+     * PostgreSQL and widen the column rather than running MySQL-only MODIFY.
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE content_items MODIFY section VARCHAR(50) NOT NULL");
+        $driver = DB::getDriverName();
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE content_items MODIFY section VARCHAR(50) NOT NULL");
+            return;
+        }
+
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE content_items ALTER COLUMN section TYPE VARCHAR(50)');
+            DB::statement('ALTER TABLE content_items DROP CONSTRAINT IF EXISTS content_items_section_check');
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        DB::statement("ALTER TABLE content_items MODIFY section ENUM('lecture_material', 'online_class', 'suggestion', 'proxy_support', 'registration') NOT NULL");
+        $driver = DB::getDriverName();
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE content_items MODIFY section ENUM('lecture_material', 'online_class', 'suggestion', 'proxy_support', 'registration') NOT NULL");
+            return;
+        }
+
+        if ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE content_items ADD CONSTRAINT content_items_section_check CHECK (section IN ('lecture_material', 'online_class', 'suggestion', 'proxy_support', 'registration'))");
+        }
     }
 };

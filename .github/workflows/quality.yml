@@ -1,0 +1,97 @@
+name: Application quality checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, fix/supabase-postgres-readiness]
+
+permissions:
+  contents: write
+
+jobs:
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: online-class-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: online-class-frontend/package-lock.json
+      # package.json currently contains pdfjs-dist but the committed lockfile does not.
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      # This repair branch is in the same repository. Keep the corrected lockfile
+      # in version control so Railway's clean installs receive the same dependency tree.
+      - name: Commit the corrected lockfile on the repair branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/fix/supabase-postgres-readiness'
+        working-directory: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_REF: ${{ github.ref_name }}
+        run: |
+          if ! git diff --quiet -- online-class-frontend/package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add online-class-frontend/package-lock.json
+            git commit -m "Update frontend dependency lockfile"
+            git push "https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git" "HEAD:$HEAD_REF"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-package-lock
+          path: online-class-frontend/package-lock.json
+          if-no-files-found: error
+      - run: npm ci
+      - run: npm run build
+
+  laravel-checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: online_class_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d online_class_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: online_class_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: disable
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: sync
+    defaults:
+      run:
+        working-directory: laravel-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, pdo_pgsql, pdo_sqlite
+          coverage: none
+      - run: composer validate --no-check-publish
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env
+      - run: php artisan key:generate --force
+      - run: php artisan config:cache
+      - run: php artisan migrate:fresh --force
+      - run: vendor/bin/phpunit
+      - name: Print Laravel log when tests fail
+        if: failure()
+        run: |
+          if [ -f storage/logs/laravel.log ]; then tail -n 250 storage/logs/laravel.log; else echo "No Laravel log file was created."; fi
