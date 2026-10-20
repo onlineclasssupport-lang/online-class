@@ -18,6 +18,13 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: online-class-frontend/package-lock.json
+      # package.json currently contains pdfjs-dist but the committed lockfile does not.
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-package-lock
+          path: online-class-frontend/package-lock.json
+          if-no-files-found: error
       - run: npm ci
       - run: npm run build
 
@@ -35,6 +42,7 @@ jobs:
           coverage: none
       - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env
       - run: php artisan key:generate --force
       - run: php artisan config:cache
       - run: vendor/bin/phpunit
