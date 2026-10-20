@@ -1,0 +1,40 @@
+name: Application quality checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: online-class-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: online-class-frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  laravel-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: laravel-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, pdo_pgsql, pdo_sqlite
+          coverage: none
+      - run: composer validate --no-check-publish
+      - run: composer install --no-interaction --prefer-dist
+      - run: php artisan key:generate --force
+      - run: php artisan config:cache
+      - run: vendor/bin/phpunit
