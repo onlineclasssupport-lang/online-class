@@ -1,25 +1,28 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * MySQL uses a native ENUM in the initial migration, but PostgreSQL's
+     * Laravel grammar represents enum columns as VARCHAR. This migration
+     * intentionally removes the MySQL-only ENUM restriction on MySQL while
+     * remaining a safe no-op on PostgreSQL, where the column already accepts
+     * arbitrary section names.
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE content_items MODIFY section VARCHAR(50) NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE content_items MODIFY section VARCHAR(50) NOT NULL");
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        DB::statement("ALTER TABLE content_items MODIFY section ENUM('lecture_material', 'online_class', 'suggestion', 'proxy_support', 'registration') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE content_items MODIFY section ENUM('lecture_material', 'online_class', 'suggestion', 'proxy_support', 'registration') NOT NULL");
+        }
     }
 };
