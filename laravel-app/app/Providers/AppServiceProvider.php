@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         // to be exactly "production" for this fix to matter, so keying off
         // it meant a typo'd or missing APP_ENV could silently break signed
         // video/PDF streaming links with no obvious error message.
-        $publicDomain = trim((string) env('RAILWAY_PUBLIC_DOMAIN', ''));
+        $publicDomain = trim((string) config('app.railway_public_domain', ''));
         if ($publicDomain !== '') {
             $publicDomain = preg_replace('#^https?://#i', '', $publicDomain);
             URL::forceRootUrl('https://' . rtrim($publicDomain, '/'));
