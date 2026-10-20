@@ -3,7 +3,7 @@ name: Application quality checks
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, fix/supabase-postgres-readiness]
 
 permissions:
   contents: write
@@ -26,10 +26,10 @@ jobs:
       # This repair branch is in the same repository. Keep the corrected lockfile
       # in version control so Railway's clean installs receive the same dependency tree.
       - name: Commit the corrected lockfile on the repair branch
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/supabase-postgres-readiness'
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/fix/supabase-postgres-readiness') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/supabase-postgres-readiness')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
         run: |
           if ! git diff --quiet -- online-class-frontend/package-lock.json; then
             git config user.name "github-actions[bot]"
