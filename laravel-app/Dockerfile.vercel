@@ -1,0 +1,42 @@
+# Production HTTP container for the Laravel API service defined in the repository-root vercel.json.
+FROM dunglas/frankenphp:1-php8.3-bookworm
+
+RUN install-php-extensions \
+    pdo_mysql \
+    pdo_pgsql \
+    bcmath \
+    intl \
+    zip \
+    opcache
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+COPY . /app
+
+# Do not cache Laravel configuration at build time: Vercel injects runtime
+# secrets and database settings only when the service starts.
+RUN mkdir -p \
+      storage/framework/cache/data \
+      storage/framework/sessions \
+      storage/framework/views \
+      storage/logs \
+      bootstrap/cache \
+    && composer install \
+      --no-dev \
+      --prefer-dist \
+      --no-interaction \
+      --no-progress \
+      --optimize-autoloader \
+      --no-scripts \
+    && php artisan package:discover --ansi \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+COPY Caddyfile.vercel /etc/frankenphp/Caddyfile
+
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    LOG_CHANNEL=stderr
+
+EXPOSE 80
+CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]
