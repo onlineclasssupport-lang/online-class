@@ -22,7 +22,7 @@ class AdminAuthController extends Controller
 
         $setting = AdminSetting::where('key', 'admin_password')->first();
 
-        if (! $setting || ! Hash::check($request->password, $setting->value)) {
+        if (! $setting || ! $this->passwordMatchesAndUpgradeIfNeeded($setting, (string) $request->password)) {
             throw ValidationException::withMessages([
                 'password' => ['Incorrect admin password.'],
             ]);
@@ -73,7 +73,7 @@ class AdminAuthController extends Controller
 
         $setting = AdminSetting::where('key', 'admin_password')->first();
 
-        if (! $setting || ! Hash::check($request->current_password, $setting->value)) {
+        if (! $setting || ! $this->passwordMatchesAndUpgradeIfNeeded($setting, (string) $request->current_password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['Current password is incorrect.'],
             ]);
@@ -86,5 +86,31 @@ class AdminAuthController extends Controller
         AdminSession::where('token', '!=', $request->bearerToken())->delete();
 
         return response()->json(['message' => 'Password updated successfully.']);
+    }
+
+    /**
+     * Validate a stored admin password and transparently upgrade legacy plain-text
+     * values to a hash. This supports manual admin_settings edits without leaving
+     * a successfully used password stored in plain text.
+     */
+    private function passwordMatchesAndUpgradeIfNeeded(AdminSetting $setting, string $candidate): bool
+    {
+        $stored = (string) $setting->value;
+        $hashInfo = password_get_info($stored);
+
+        // A hash has a recognized algorithm. Plain-text legacy values do not.
+        // Never pass plain text to Hash::check(), which may throw when hash
+        // algorithm verification is enabled.
+        if (($hashInfo['algo'] ?? null) === null) {
+            if (! hash_equals($stored, $candidate)) {
+                return false;
+            }
+
+            $setting->update(['value' => Hash::make($candidate)]);
+
+            return true;
+        }
+
+        return Hash::check($candidate, $stored);
     }
 }
