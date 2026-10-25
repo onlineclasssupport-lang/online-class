@@ -96,11 +96,28 @@ class AdminAuthController extends Controller
     private function passwordMatchesAndUpgradeIfNeeded(AdminSetting $setting, string $candidate): bool
     {
         $stored = (string) $setting->value;
+
+        // PostgreSQL pgcrypto's bcrypt implementation emits $2a$ hashes.
+        // password_get_info() can classify these as "unknown" on PHP builds
+        // that only report $2y$, even though password_verify() supports them.
+        // Verify these explicitly, then upgrade them to Laravel's standard hash.
+        if (str_starts_with($stored, '$2a
+    }
+}
+)) {
+            if (! password_verify($candidate, $stored)) {
+                return false;
+            }
+
+            $setting->update(['value' => Hash::make($candidate)]);
+
+            return true;
+        }
+
         $hashInfo = password_get_info($stored);
 
-        // A hash has a recognized algorithm. Plain-text legacy values do not.
-        // Never pass plain text to Hash::check(), which may throw when hash
-        // algorithm verification is enabled.
+        // Plain-text legacy values can exist after a manual dashboard edit.
+        // Compare them in constant time and immediately upgrade after success.
         if (($hashInfo['algo'] ?? null) === null) {
             if (! hash_equals($stored, $candidate)) {
                 return false;
