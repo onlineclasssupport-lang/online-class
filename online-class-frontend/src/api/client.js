@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// Set VITE_API_URL in .env to point at the Laravel backend, e.g.
-// VITE_API_URL=http://localhost:8000/api
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+// Defaults to the same-domain API route used by the Vercel rewrite.
+// For local development, set VITE_API_URL=http://localhost:8000/api.
+const baseURL = import.meta.env.VITE_API_URL || "/api";
 
 const api = axios.create({ baseURL });
 
