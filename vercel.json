@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "laravel-api": {
+      "root": "laravel-app",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.vercel"
+    },
+    "online-class-frontend": {
+      "root": "online-class-frontend",
+      "framework": "vite"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api",
+      "destination": { "service": "laravel-api" }
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": { "service": "laravel-api" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "online-class-frontend" }
+    }
+  ]
+}
