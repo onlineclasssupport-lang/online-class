@@ -14,15 +14,21 @@
   "rewrites": [
     {
       "source": "/api",
-      "destination": { "service": "laravel-api" }
+      "destination": {
+        "service": "laravel-api"
+      }
     },
     {
       "source": "/api/(.*)",
-      "destination": { "service": "laravel-api" }
+      "destination": {
+        "service": "laravel-api"
+      }
     },
     {
       "source": "/(.*)",
-      "destination": { "service": "online-class-frontend" }
+      "destination": {
+        "service": "online-class-frontend"
+      }
     }
   ]
 }

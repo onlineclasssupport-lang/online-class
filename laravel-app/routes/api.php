@@ -13,7 +13,27 @@ use App\Http\Controllers\Api\SecurityLogController;
 use App\Http\Controllers\Api\SiteSettingsController;
 use App\Http\Controllers\Api\WelcomeScreenController;
 use App\Http\Controllers\GoogleOAuthController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+
+// API readiness: safely reports whether the application can reach its configured database.
+Route::get('/health', static function () {
+    try {
+        DB::connection()->select('SELECT 1');
+
+        return response()->json([
+            'status' => 'ok',
+            'database' => 'connected',
+        ]);
+    } catch (\Throwable $exception) {
+        report($exception);
+
+        return response()->json([
+            'status' => 'degraded',
+            'database' => 'unavailable',
+        ], 503);
+    }
+})->name('health');
 
 /*
 |--------------------------------------------------------------------------
